@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { Navbar } from './components'
 import HomePage from './pages/HomePage.jsx'
 import './App.css'
 
@@ -6,9 +7,7 @@ function App() {
   return (
     <Router>
       <div className="app">
-        <header className="app-header">
-          <h1>Quick Appointment</h1>
-        </header>
+        <Navbar />
         <main className="app-main">
           <Routes>
             <Route path="/" element={<HomePage />} />
