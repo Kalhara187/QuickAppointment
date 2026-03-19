@@ -1,154 +1,485 @@
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 
-const features = [
+const services = [
   {
-    title: 'Lightning Fast',
-    description: 'Book appointments in seconds with our streamlined interface.',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6" aria-hidden="true">
-        <path
-          d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
+    name: 'General Consultation',
+    description: 'Fast appointments for checkups and everyday health concerns.',
+    iconCode: 'GC',
+    popularity: 'Most Booked',
+    rating: 4.9,
   },
   {
-    title: 'Always Available',
-    description: 'Access your appointments 24/7 on any device, anywhere.',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6" aria-hidden="true">
-        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
-        <path d="M12 6v6l4 2.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      </svg>
-    ),
+    name: 'Dental Care',
+    description: 'Professional cleaning, oral exams, and preventive dental treatment.',
+    iconCode: 'DC',
+    popularity: 'Trending',
+    rating: 4.8,
   },
   {
-    title: 'Smart Reminders',
-    description: 'Never miss an appointment again with automated notifications.',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6" aria-hidden="true">
-        <path
-          d="M18 8a6 6 0 01-7.5 5.9M9 18h6M7 18.5v2M17 18.5v2M8 8.5l-2-2M16 8.5l2-2"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
+    name: 'Physiotherapy Session',
+    description: 'Personalized movement recovery and posture-focused rehabilitation.',
+    iconCode: 'PT',
+    popularity: 'Popular',
+    rating: 4.7,
   },
   {
-    title: 'Secure & Private',
-    description: 'Your data is protected with enterprise-grade security.',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6" aria-hidden="true">
-        <path
-          d="M12 2L3 6.5v6c0 6 9 8 9 8s9-2 9-8v-6L12 2z"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
+    name: 'Mental Wellness',
+    description: 'Confidential counseling sessions for stress and emotional support.',
+    iconCode: 'MW',
+    popularity: 'Highly Rated',
+    rating: 4.9,
+  },
+  {
+    name: 'Skin Treatment',
+    description: 'Dermatology appointments for skin health and cosmetic concerns.',
+    iconCode: 'ST',
+    popularity: 'Hot Right Now',
+    rating: 4.8,
+  },
+  {
+    name: 'Eye Examination',
+    description: 'Vision assessment and specialist guidance for eye care.',
+    iconCode: 'EE',
+    popularity: 'Recommended',
+    rating: 4.7,
   },
 ]
 
-const stats = [
-  { number: '50K+', label: 'Happy Users' },
-  { number: '1M+', label: 'Appointments Booked' },
-  { number: '99.9%', label: 'Uptime' },
+const steps = [
+  {
+    title: 'Choose a service',
+    description: 'Pick what you need from our complete service catalog.',
+  },
+  {
+    title: 'Select date & time',
+    description: 'See real-time availability and book the slot that fits your day.',
+  },
+  {
+    title: 'Confirm booking',
+    description: 'Get instant confirmation and reminder alerts before your visit.',
+  },
 ]
+
+const testimonials = [
+  {
+    name: 'Aanya Verma',
+    role: 'Working Professional',
+    image: 'AV',
+    quote: 'QuickAppointment saved me so much time. I booked my checkup in less than a minute.',
+    rating: 5,
+  },
+  {
+    name: 'Daniel Brooks',
+    role: 'Parent',
+    image: 'DB',
+    quote: 'The date and time picker is super easy to use. Smooth and professional experience.',
+    rating: 5,
+  },
+  {
+    name: 'Sofia Khan',
+    role: 'Student',
+    image: 'SK',
+    quote: 'I love how clear everything is. Services, pricing, and booking all in one place.',
+    rating: 4,
+  },
+]
+
+const quickTimes = ['09:00 AM', '10:30 AM', '12:00 PM', '02:00 PM', '04:30 PM', '06:00 PM']
 
 function HomePage() {
+  const navigate = useNavigate()
+  const [selectedService, setSelectedService] = useState(services[0].name)
+  const [selectedDate, setSelectedDate] = useState('')
+  const [selectedTime, setSelectedTime] = useState(quickTimes[0])
+  const [activeTestimonial, setActiveTestimonial] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveTestimonial((prev) => (prev + 1) % testimonials.length)
+    }, 4500)
+
+    return () => clearInterval(timer)
+  }, [])
+
+  const minDate = useMemo(() => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = `${now.getMonth() + 1}`.padStart(2, '0')
+    const day = `${now.getDate()}`.padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }, [])
+
+  const handleQuickBook = () => {
+    navigate('/book-appointment', {
+      state: {
+        service: selectedService,
+        date: selectedDate,
+        time: selectedTime,
+      },
+    })
+  }
+
   return (
-    <div className="page home-page">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0a2f51] via-[#1247a0] to-[#1b7fa0] px-6 py-16 text-white shadow-2xl sm:px-12 sm:py-20">
-        <div className="absolute -left-40 top-20 h-72 w-72 rounded-full bg-sky-300/20 blur-3xl" />
-        <div className="absolute -right-32 -bottom-20 h-80 w-80 rounded-full bg-cyan-200/20 blur-3xl" />
-        <div className="relative z-10 max-w-3xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-200">Welcome to QuickAppointment</p>
-          <h1 className="mt-4 text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
-            Scheduling Made Simple & Smart
-          </h1>
-          <p className="mt-6 max-w-2xl text-base text-cyan-50 sm:text-lg">
-            The all-in-one appointment platform for service providers and users who value their time. Book, manage, and
-            stay organized with confidence.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-4">
-            <Link
-              to="/book-appointment"
-              className="inline-flex items-center rounded-lg bg-sky-500 px-6 py-3 font-semibold text-white transition hover:bg-sky-600 hover:shadow-lg"
-            >
-              Get Started Today
-              <svg className="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Link>
-            <Link
-              to="/about"
-              className="inline-flex items-center rounded-lg border-2 border-white px-6 py-3 font-semibold text-white transition hover:bg-white/10"
-            >
-              Learn More
-            </Link>
+    <div className="page home-page pb-10">
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#062d4f] via-[#0e5f8f] to-[#0ea5b7] px-6 py-14 text-white shadow-[0_30px_80px_rgba(7,52,77,0.35)] sm:px-10 sm:py-20">
+        <div className="absolute -left-36 top-10 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute right-6 top-10 hidden h-40 w-40 rotate-12 rounded-3xl border border-white/20 bg-white/10 backdrop-blur-sm lg:block" />
+        <div className="absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-cyan-100/20 blur-3xl" />
+
+        <div className="relative z-10 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-cyan-100">Smart Scheduling Platform</p>
+            <h1 className="mt-4 max-w-2xl text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
+              Book Your Appointment in Seconds
+            </h1>
+            <p className="mt-5 max-w-2xl text-base text-cyan-50 sm:text-lg">
+              QuickAppointment helps you discover services, pick available time slots, and confirm appointments with a
+              single smooth flow.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                to="/book-appointment"
+                className="inline-flex items-center rounded-xl bg-white px-6 py-3 font-semibold text-sky-800 transition duration-300 hover:-translate-y-0.5 hover:bg-cyan-50"
+              >
+                Book Now
+              </Link>
+              <a
+                href="#services-preview"
+                className="inline-flex items-center rounded-xl border border-white/40 px-6 py-3 font-semibold text-white transition duration-300 hover:bg-white/10"
+              >
+                Explore Services
+              </a>
+            </div>
           </div>
-        </div>
-      </section>
 
-      <section className="mt-12 grid gap-4 sm:grid-cols-3">
-        {stats.map((stat) => (
-          <article
-            key={stat.label}
-            className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm transition-all duration-300 hover:shadow-md"
-          >
-            <p className="text-3xl font-bold text-sky-700 sm:text-4xl">{stat.number}</p>
-            <p className="mt-2 text-sm font-medium text-slate-600">{stat.label}</p>
-          </article>
-        ))}
-      </section>
-
-      <section className="mt-16">
-        <div className="mb-10 text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.15em] text-sky-700">Why Choose Us</p>
-          <h2 className="mt-2 text-3xl font-bold text-slate-900 sm:text-4xl">Powerful Features for Everyone</h2>
-          <p className="mt-3 text-slate-600">Everything you need in one beautiful, intuitive platform</p>
-        </div>
-
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature) => (
-            <article
-              key={feature.title}
-              className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-            >
-              <div className="inline-flex rounded-xl bg-sky-50 p-3 text-sky-700 transition-all duration-300 group-hover:bg-sky-100 group-hover:scale-110">
-                {feature.icon}
+          <aside className="rounded-2xl border border-white/25 bg-white/10 p-5 backdrop-blur-md sm:p-6">
+            <p className="text-sm font-semibold text-cyan-100">Today on QuickAppointment</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl bg-white/10 p-4">
+                <p className="text-2xl font-extrabold">12k+</p>
+                <p className="text-xs uppercase tracking-wide text-cyan-100">Monthly Bookings</p>
               </div>
-              <h3 className="mt-4 font-semibold text-slate-900">{feature.title}</h3>
-              <p className="mt-2 text-sm text-slate-600">{feature.description}</p>
+              <div className="rounded-xl bg-white/10 p-4">
+                <p className="text-2xl font-extrabold">98%</p>
+                <p className="text-xs uppercase tracking-wide text-cyan-100">On-Time Visits</p>
+              </div>
+              <div className="rounded-xl bg-white/10 p-4">
+                <p className="text-2xl font-extrabold">4.9/5</p>
+                <p className="text-xs uppercase tracking-wide text-cyan-100">Average Rating</p>
+              </div>
+              <div className="rounded-xl bg-white/10 p-4">
+                <p className="text-2xl font-extrabold">24/7</p>
+                <p className="text-xs uppercase tracking-wide text-cyan-100">Booking Access</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section className="mt-8 rounded-2xl border border-sky-100 bg-white p-4 shadow-lg shadow-sky-100/60 sm:p-6">
+        <div className="grid gap-3 md:grid-cols-4 md:items-end">
+          <label className="space-y-1">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Service</span>
+            <select
+              className="w-full rounded-xl border border-slate-300 px-3 py-3 text-sm outline-none transition focus:border-sky-600 focus:ring-2 focus:ring-sky-100"
+              value={selectedService}
+              onChange={(event) => setSelectedService(event.target.value)}
+            >
+              {services.map((service) => (
+                <option key={service.name} value={service.name}>
+                  {service.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-1">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Date</span>
+            <input
+              type="date"
+              min={minDate}
+              value={selectedDate}
+              onChange={(event) => setSelectedDate(event.target.value)}
+              className="w-full rounded-xl border border-slate-300 px-3 py-3 text-sm outline-none transition focus:border-sky-600 focus:ring-2 focus:ring-sky-100"
+            />
+          </label>
+
+          <label className="space-y-1">
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Time</span>
+            <select
+              className="w-full rounded-xl border border-slate-300 px-3 py-3 text-sm outline-none transition focus:border-sky-600 focus:ring-2 focus:ring-sky-100"
+              value={selectedTime}
+              onChange={(event) => setSelectedTime(event.target.value)}
+            >
+              {quickTimes.map((time) => (
+                <option key={time} value={time}>
+                  {time}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button
+            type="button"
+            onClick={handleQuickBook}
+            className="rounded-xl bg-sky-700 px-5 py-3 text-sm font-semibold text-white transition duration-300 hover:-translate-y-0.5 hover:bg-sky-800"
+          >
+            Book Appointment
+          </button>
+        </div>
+      </section>
+
+      <section id="services-preview" className="mt-16">
+        <div className="mb-8 flex items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-700">Services Preview</p>
+            <h2 className="mt-2 text-3xl font-black text-slate-900">Choose From Top Services</h2>
+          </div>
+          <Link to="/services" className="text-sm font-semibold text-sky-700 hover:text-sky-800">
+            View More
+          </Link>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {services.map((service) => (
+            <article
+              key={service.name}
+              className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-sky-200 hover:shadow-lg"
+            >
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-sky-100 text-sm font-bold text-sky-700">
+                {service.iconCode}
+              </div>
+              <h3 className="mt-3 text-lg font-bold text-slate-900">{service.name}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{service.description}</p>
+              <div className="mt-4 flex items-center justify-between">
+                <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">{service.popularity}</span>
+                <span className="text-sm font-semibold text-amber-600">{service.rating} stars</span>
+              </div>
+              <Link
+                to="/book-appointment"
+                className="mt-4 inline-flex rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition duration-300 group-hover:border-sky-500 group-hover:text-sky-700"
+              >
+                Book Now
+              </Link>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="mt-16 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100 p-8 shadow-sm sm:p-12">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-2xl font-bold text-slate-900 sm:text-3xl">Ready to transform your scheduling?</h2>
-          <p className="mt-3 text-slate-600">Join thousands of users who are already saving time and improving organization.</p>
-          <Link
-            to="/book-appointment"
-            className="mt-6 inline-flex items-center rounded-lg bg-sky-600 px-6 py-3 font-semibold text-white transition hover:bg-sky-700"
-          >
-            Start Booking Now
-            <svg className="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </Link>
+      <section className="mt-16 rounded-3xl border border-slate-200 bg-white px-6 py-10 shadow-sm sm:px-8">
+        <div className="mb-8 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-700">How It Works</p>
+          <h2 className="mt-2 text-3xl font-black text-slate-900">Book in 3 Simple Steps</h2>
+        </div>
+
+        <div className="grid gap-5 md:grid-cols-3">
+          {steps.map((step, index) => (
+            <article key={step.title} className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-center transition duration-300 hover:bg-sky-50">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-sky-700 text-sm font-bold text-white">
+                0{index + 1}
+              </div>
+              <h3 className="mt-4 text-lg font-bold text-slate-900">{step.title}</h3>
+              <p className="mt-2 text-sm text-slate-600">{step.description}</p>
+            </article>
+          ))}
         </div>
       </section>
+
+      <section className="mt-16">
+        <div className="mb-8 flex items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-700">Featured</p>
+            <h2 className="mt-2 text-3xl font-black text-slate-900">Popular Right Now</h2>
+          </div>
+          <Link to="/book-appointment" className="text-sm font-semibold text-sky-700 hover:text-sky-800">
+            Quick Booking
+          </Link>
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-3">
+          {services.slice(0, 3).map((service) => (
+            <article
+              key={`featured-${service.name}`}
+              className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-sky-50 p-5 shadow-sm"
+            >
+              <span className="absolute right-4 top-4 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                {service.popularity}
+              </span>
+              <p className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white text-sm font-bold text-sky-700 shadow-sm">
+                {service.iconCode}
+              </p>
+              <h3 className="mt-2 text-xl font-bold text-slate-900">{service.name}</h3>
+              <p className="mt-2 text-sm text-slate-600">{service.description}</p>
+              <p className="mt-4 text-sm font-semibold text-amber-600">Rated {service.rating} out of 5</p>
+              <Link
+                to="/book-appointment"
+                className="mt-4 inline-flex rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800"
+              >
+                Book This Service
+              </Link>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-16 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch">
+        <article className="rounded-3xl bg-gradient-to-br from-[#04243f] to-[#0f7493] p-7 text-white shadow-xl sm:p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-100">Testimonials</p>
+          <h2 className="mt-2 text-3xl font-black">What Our Users Say</h2>
+
+          <div className="mt-6 rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white text-sm font-bold text-sky-800">
+                {testimonials[activeTestimonial].image}
+              </span>
+              <div>
+                <p className="font-bold">{testimonials[activeTestimonial].name}</p>
+                <p className="text-xs text-cyan-100">{testimonials[activeTestimonial].role}</p>
+              </div>
+            </div>
+
+            <p className="mt-4 text-cyan-50">"{testimonials[activeTestimonial].quote}"</p>
+            <p className="mt-3 text-sm text-amber-200">{'*'.repeat(testimonials[activeTestimonial].rating)}</p>
+          </div>
+
+          <div className="mt-4 flex gap-2">
+            {testimonials.map((item, index) => (
+              <button
+                key={item.name}
+                type="button"
+                onClick={() => setActiveTestimonial(index)}
+                aria-label={`View testimonial ${index + 1}`}
+                className={`h-2.5 rounded-full transition-all ${
+                  index === activeTestimonial ? 'w-8 bg-white' : 'w-3 bg-white/40 hover:bg-white/70'
+                }`}
+              />
+            ))}
+          </div>
+        </article>
+
+        <article className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm sm:p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-700">About QuickAppointment</p>
+          <h2 className="mt-2 text-3xl font-black text-slate-900">Scheduling Built For Real Life</h2>
+          <p className="mt-4 text-sm leading-7 text-slate-600">
+            We built QuickAppointment to make appointment booking feel effortless. Whether you are booking a single visit
+            or managing ongoing sessions, the platform keeps everything organized and accessible.
+          </p>
+          <div className="mt-5 rounded-2xl bg-slate-100 p-5 text-center">
+            <p className="text-sm font-semibold text-slate-700">Trusted by clinics, salons, consultants, and wellness teams.</p>
+          </div>
+          <Link
+            to="/about"
+            className="mt-5 inline-flex rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-sky-500 hover:text-sky-700"
+          >
+            Read More
+          </Link>
+        </article>
+      </section>
+
+      <section className="mt-16 rounded-3xl bg-gradient-to-r from-sky-700 to-cyan-700 px-6 py-10 text-center text-white shadow-lg sm:px-10">
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-100">Ready to Start?</p>
+        <h2 className="mt-2 text-3xl font-black sm:text-4xl">Ready to book your appointment?</h2>
+        <p className="mx-auto mt-3 max-w-2xl text-cyan-50">
+          Skip the waiting and reserve your preferred slot right now with just a few clicks.
+        </p>
+        <Link
+          to="/book-appointment"
+          className="mt-6 inline-flex rounded-xl bg-white px-6 py-3 font-semibold text-sky-800 transition duration-300 hover:-translate-y-0.5 hover:bg-cyan-50"
+        >
+          Get Started
+        </Link>
+      </section>
+
+      <section className="mt-16 grid gap-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:grid-cols-2 lg:p-8">
+        <article>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-700">Contact Preview</p>
+          <h2 className="mt-2 text-3xl font-black text-slate-900">Need Help Before Booking?</h2>
+          <p className="mt-3 text-sm text-slate-600">
+            Reach out anytime and our team will guide you through services, timing, and next steps.
+          </p>
+
+          <ul className="mt-5 space-y-3 text-sm text-slate-700">
+            <li className="rounded-xl bg-slate-100 px-4 py-3">Email: support@quickappointment.com</li>
+            <li className="rounded-xl bg-slate-100 px-4 py-3">Phone: +1 (555) 123-4567</li>
+          </ul>
+
+          <Link
+            to="/contact"
+            className="mt-5 inline-flex rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-sky-500 hover:text-sky-700"
+          >
+            Contact Us
+          </Link>
+        </article>
+
+        <article className="rounded-2xl bg-slate-50 p-5">
+          <h3 className="text-lg font-bold text-slate-900">Quick Message</h3>
+          <p className="mt-1 text-sm text-slate-600">Want us to call you back?</p>
+          <form className="mt-4 space-y-3" onSubmit={(event) => event.preventDefault()}>
+            <input
+              type="text"
+              placeholder="Your name"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-sky-600 focus:ring-2 focus:ring-sky-100"
+            />
+            <input
+              type="email"
+              placeholder="Email address"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-sky-600 focus:ring-2 focus:ring-sky-100"
+            />
+            <textarea
+              rows="3"
+              placeholder="How can we help?"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-sky-600 focus:ring-2 focus:ring-sky-100"
+            />
+            <Link
+              to="/contact"
+              className="inline-flex rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800"
+            >
+              Send Via Contact Page
+            </Link>
+          </form>
+        </article>
+      </section>
+
+      <footer className="mt-14 rounded-3xl bg-slate-900 px-6 py-10 text-slate-200 sm:px-8">
+        <div className="grid gap-8 md:grid-cols-4">
+          <div>
+            <h3 className="text-xl font-black text-white">QuickAppointment</h3>
+            <p className="mt-3 text-sm text-slate-400">Modern scheduling for faster appointments and better experiences.</p>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wider text-slate-300">Quick Links</p>
+            <ul className="mt-3 space-y-2 text-sm text-slate-400">
+              <li><Link className="hover:text-white" to="/">Home</Link></li>
+              <li><Link className="hover:text-white" to="/services">Services</Link></li>
+              <li><Link className="hover:text-white" to="/about">About</Link></li>
+              <li><Link className="hover:text-white" to="/contact">Contact</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wider text-slate-300">Social</p>
+            <ul className="mt-3 space-y-2 text-sm text-slate-400">
+              <li><a className="hover:text-white" href="https://facebook.com" target="_blank" rel="noreferrer">Facebook</a></li>
+              <li><a className="hover:text-white" href="https://instagram.com" target="_blank" rel="noreferrer">Instagram</a></li>
+              <li><a className="hover:text-white" href="https://linkedin.com" target="_blank" rel="noreferrer">LinkedIn</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wider text-slate-300">Legal</p>
+            <ul className="mt-3 space-y-2 text-sm text-slate-400">
+              <li><a className="hover:text-white" href="#">Terms & Conditions</a></li>
+              <li><a className="hover:text-white" href="#">Privacy Policy</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-8 border-t border-slate-800 pt-5 text-xs text-slate-500">
+          (c) {new Date().getFullYear()} QuickAppointment. All rights reserved.
+        </div>
+      </footer>
     </div>
   )
 }
