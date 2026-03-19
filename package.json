@@ -1,6 +1,7 @@
 {
   "name": "quick-appointment-frontend",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",
