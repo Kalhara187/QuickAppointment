@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -59,6 +59,8 @@ export function Navbar() {
     ? 'text-slate-100 hover:text-sky-300 hover:border-sky-300'
     : 'text-slate-700 hover:text-sky-700 hover:border-sky-600'
 
+  const activeNavLinkClass = isDarkMode ? 'text-sky-300 border-sky-300' : 'text-sky-700 border-sky-700'
+
   const menuPanelClass = isDarkMode
     ? 'bg-slate-900/95 border-slate-800'
     : 'bg-white/95 border-slate-200'
@@ -87,24 +89,38 @@ export function Navbar() {
 
           <div className="hidden md:flex flex-1 items-center justify-end gap-6">
             <div className="flex items-center gap-5 text-sm lg:text-base">
-              <Link
+              <NavLink
                 to="/"
-                className={`border-b-2 border-transparent pb-1 transition-all duration-300 ${navLinkClass}`}
+                className={({ isActive }) =>
+                  `border-b-2 pb-1 transition-all duration-300 ${isActive ? activeNavLinkClass : `border-transparent ${navLinkClass}`}`
+                }
               >
                 Home
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/services"
-                className={`border-b-2 border-transparent pb-1 transition-all duration-300 ${navLinkClass}`}
+                className={({ isActive }) =>
+                  `border-b-2 pb-1 transition-all duration-300 ${isActive ? activeNavLinkClass : `border-transparent ${navLinkClass}`}`
+                }
               >
                 Services
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/book-appointment"
-                className={`border-b-2 border-transparent pb-1 transition-all duration-300 ${navLinkClass}`}
+                className={({ isActive }) =>
+                  `border-b-2 pb-1 transition-all duration-300 ${isActive ? activeNavLinkClass : `border-transparent ${navLinkClass}`}`
+                }
               >
                 Book Appointment
-              </Link>
+              </NavLink>
+              <NavLink
+                to="/about"
+                className={({ isActive }) =>
+                  `border-b-2 pb-1 transition-all duration-300 ${isActive ? activeNavLinkClass : `border-transparent ${navLinkClass}`}`
+                }
+              >
+                About Us
+              </NavLink>
               {isAuthenticated && (
                 <Link
                   to="/my-appointments"
@@ -113,12 +129,14 @@ export function Navbar() {
                   My Appointments
                 </Link>
               )}
-              <Link
+              <NavLink
                 to="/contact"
-                className={`border-b-2 border-transparent pb-1 transition-all duration-300 ${navLinkClass}`}
+                className={({ isActive }) =>
+                  `border-b-2 pb-1 transition-all duration-300 ${isActive ? activeNavLinkClass : `border-transparent ${navLinkClass}`}`
+                }
               >
                 Contact
-              </Link>
+              </NavLink>
               {isAuthenticated && userRole === 'admin' && (
                 <Link
                   to="/admin/dashboard"
@@ -226,27 +244,50 @@ export function Navbar() {
           }`}
         >
           <div className={`space-y-2 border-t px-2 py-3 ${menuPanelClass}`}>
-            <Link
+            <NavLink
               to="/"
-              className={`block rounded-md px-3 py-2 text-sm transition-colors duration-300 ${navLinkClass}`}
+              className={({ isActive }) =>
+                `block rounded-md px-3 py-2 text-sm transition-colors duration-300 ${
+                  isActive ? (isDarkMode ? 'bg-slate-800 text-sky-300' : 'bg-sky-50 text-sky-700') : navLinkClass
+                }`
+              }
               onClick={closeMenu}
             >
               Home
-            </Link>
-            <Link
+            </NavLink>
+            <NavLink
               to="/services"
-              className={`block rounded-md px-3 py-2 text-sm transition-colors duration-300 ${navLinkClass}`}
+              className={({ isActive }) =>
+                `block rounded-md px-3 py-2 text-sm transition-colors duration-300 ${
+                  isActive ? (isDarkMode ? 'bg-slate-800 text-sky-300' : 'bg-sky-50 text-sky-700') : navLinkClass
+                }`
+              }
               onClick={closeMenu}
             >
               Services
-            </Link>
-            <Link
+            </NavLink>
+            <NavLink
               to="/book-appointment"
-              className={`block rounded-md px-3 py-2 text-sm transition-colors duration-300 ${navLinkClass}`}
+              className={({ isActive }) =>
+                `block rounded-md px-3 py-2 text-sm transition-colors duration-300 ${
+                  isActive ? (isDarkMode ? 'bg-slate-800 text-sky-300' : 'bg-sky-50 text-sky-700') : navLinkClass
+                }`
+              }
               onClick={closeMenu}
             >
               Book Appointment
-            </Link>
+            </NavLink>
+            <NavLink
+              to="/about"
+              className={({ isActive }) =>
+                `block rounded-md px-3 py-2 text-sm transition-colors duration-300 ${
+                  isActive ? (isDarkMode ? 'bg-slate-800 text-sky-300' : 'bg-sky-50 text-sky-700') : navLinkClass
+                }`
+              }
+              onClick={closeMenu}
+            >
+              About Us
+            </NavLink>
             {isAuthenticated && (
               <Link
                 to="/my-appointments"
@@ -256,13 +297,17 @@ export function Navbar() {
                 My Appointments
               </Link>
             )}
-            <Link
+            <NavLink
               to="/contact"
-              className={`block rounded-md px-3 py-2 text-sm transition-colors duration-300 ${navLinkClass}`}
+              className={({ isActive }) =>
+                `block rounded-md px-3 py-2 text-sm transition-colors duration-300 ${
+                  isActive ? (isDarkMode ? 'bg-slate-800 text-sky-300' : 'bg-sky-50 text-sky-700') : navLinkClass
+                }`
+              }
               onClick={closeMenu}
             >
               Contact
-            </Link>
+            </NavLink>
 
             {isAuthenticated && userRole === 'admin' && (
               <Link
