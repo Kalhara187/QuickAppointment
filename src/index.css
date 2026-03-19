@@ -1,19 +1,44 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap');
+
+:root {
+  --qa-bg-soft: #eef6ff;
+  --qa-bg-accent: #e8f8fb;
+  --qa-text: #0f172a;
+}
 
 @layer base {
   * {
     @apply m-0 p-0 box-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-slate-50 antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
+    @apply antialiased;
+    background:
+      radial-gradient(circle at 6% 10%, rgba(57, 176, 255, 0.15), transparent 35%),
+      radial-gradient(circle at 90% 4%, rgba(20, 184, 166, 0.13), transparent 30%),
+      linear-gradient(180deg, var(--qa-bg-accent) 0%, var(--qa-bg-soft) 38%, #f8fafc 100%);
+    color: var(--qa-text);
+    font-family: 'Manrope', 'Segoe UI', sans-serif;
+    min-height: 100vh;
   }
 
   code {
     @apply font-mono;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Sora', 'Manrope', sans-serif;
+    letter-spacing: -0.01em;
   }
 
   #root {
