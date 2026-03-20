@@ -38,15 +38,6 @@ export function Navbar() {
     closeMenu()
   }
 
-  const handleLogin = () => {
-    // This would typically navigate to login page
-    // For demo purposes, we'll simulate login
-    setIsAuthenticated(true)
-    setUserRole('user')
-    setUserName('John Doe')
-    closeMenu()
-  }
-
   const toggleTheme = () => {
     setIsDarkMode((prev) => !prev)
   }
@@ -162,12 +153,12 @@ export function Navbar() {
 
               {!isAuthenticated ? (
                 <>
-                  <button
+                  <Link
+                    to="/login"
                     className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-300 ${isDarkMode ? 'border border-sky-400 text-sky-200 hover:bg-sky-500 hover:text-white' : 'border border-sky-600 text-sky-700 hover:bg-sky-600 hover:text-white'}`}
-                    onClick={handleLogin}
                   >
                     Login
-                  </button>
+                  </Link>
                   <Link
                     to="/register"
                     className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-300 ${isDarkMode ? 'bg-sky-500 text-white hover:bg-sky-400' : 'bg-sky-600 text-white hover:bg-sky-700'}`}
@@ -322,12 +313,13 @@ export function Navbar() {
             <div className={`mt-2 border-t pt-3 ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
               {!isAuthenticated ? (
                 <div className="grid grid-cols-2 gap-2">
-                  <button
-                    className={`rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-300 ${isDarkMode ? 'border border-sky-400 text-sky-200 hover:bg-sky-500 hover:text-white' : 'border border-sky-600 text-sky-700 hover:bg-sky-600 hover:text-white'}`}
-                    onClick={handleLogin}
+                  <Link
+                    to="/login"
+                    className={`rounded-lg px-3 py-2 text-center text-sm font-semibold transition-all duration-300 ${isDarkMode ? 'border border-sky-400 text-sky-200 hover:bg-sky-500 hover:text-white' : 'border border-sky-600 text-sky-700 hover:bg-sky-600 hover:text-white'}`}
+                    onClick={closeMenu}
                   >
                     Login
-                  </button>
+                  </Link>
                   <Link
                     to="/register"
                     className={`rounded-lg px-3 py-2 text-center text-sm font-semibold transition-all duration-300 ${isDarkMode ? 'bg-sky-500 text-white hover:bg-sky-400' : 'bg-sky-600 text-white hover:bg-sky-700'}`}
