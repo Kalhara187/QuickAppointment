@@ -11,6 +11,35 @@ export function Navbar() {
   const profileRef = useRef(null)
 
   useEffect(() => {
+    const hydrateSession = () => {
+      const saved = localStorage.getItem('qaUserSession')
+
+      if (!saved) {
+        setIsAuthenticated(false)
+        setUserRole(null)
+        setUserName(null)
+        return
+      }
+
+      try {
+        const parsed = JSON.parse(saved)
+        setIsAuthenticated(true)
+        setUserRole(parsed.role || 'user')
+        setUserName(parsed.name || parsed.identifier || 'User')
+      } catch {
+        localStorage.removeItem('qaUserSession')
+        setIsAuthenticated(false)
+        setUserRole(null)
+        setUserName(null)
+      }
+    }
+
+    hydrateSession()
+    window.addEventListener('storage', hydrateSession)
+    return () => window.removeEventListener('storage', hydrateSession)
+  }, [])
+
+  useEffect(() => {
     const onOutsideClick = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setIsProfileOpen(false)
@@ -31,6 +60,8 @@ export function Navbar() {
   }
 
   const handleLogout = () => {
+    localStorage.removeItem('qaUserSession')
+    localStorage.removeItem('authToken')
     setIsAuthenticated(false)
     setUserRole(null)
     setUserName(null)

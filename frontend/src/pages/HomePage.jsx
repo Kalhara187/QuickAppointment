@@ -441,45 +441,6 @@ function HomePage() {
         </article>
       </section>
 
-      <footer className="mt-14 rounded-3xl bg-slate-900 px-6 py-10 text-slate-200 sm:px-8">
-        <div className="grid gap-8 md:grid-cols-4">
-          <div>
-            <h3 className="text-xl font-black text-white">QuickAppointment</h3>
-            <p className="mt-3 text-sm text-slate-400">Modern scheduling for faster appointments and better experiences.</p>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wider text-slate-300">Quick Links</p>
-            <ul className="mt-3 space-y-2 text-sm text-slate-400">
-              <li><Link className="hover:text-white" to="/">Home</Link></li>
-              <li><Link className="hover:text-white" to="/services">Services</Link></li>
-              <li><Link className="hover:text-white" to="/about">About</Link></li>
-              <li><Link className="hover:text-white" to="/contact">Contact</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wider text-slate-300">Social</p>
-            <ul className="mt-3 space-y-2 text-sm text-slate-400">
-              <li><a className="hover:text-white" href="https://facebook.com" target="_blank" rel="noreferrer">Facebook</a></li>
-              <li><a className="hover:text-white" href="https://instagram.com" target="_blank" rel="noreferrer">Instagram</a></li>
-              <li><a className="hover:text-white" href="https://linkedin.com" target="_blank" rel="noreferrer">LinkedIn</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wider text-slate-300">Legal</p>
-            <ul className="mt-3 space-y-2 text-sm text-slate-400">
-              <li><a className="hover:text-white" href="#">Terms & Conditions</a></li>
-              <li><a className="hover:text-white" href="#">Privacy Policy</a></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="mt-8 border-t border-slate-800 pt-5 text-xs text-slate-500">
-          (c) {new Date().getFullYear()} QuickAppointment. All rights reserved.
-        </div>
-      </footer>
     </div>
   )
 }

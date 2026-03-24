@@ -62,14 +62,24 @@ function LoginPage() {
     await new Promise((resolve) => setTimeout(resolve, 1300))
 
     const id = fields.identifier.trim().toLowerCase()
-    const isValidCredential =
-      (id === 'demo@quickappointment.com' || id === 'demo') && fields.password === 'Pass@123'
+    const isDemoUser = (id === 'demo@quickappointment.com' || id === 'demo') && fields.password === 'Pass@123'
+    const isDemoAdmin = (id === 'admin@quickappointment.com' || id === 'admin') && fields.password === 'Admin@123'
+    const isValidCredential = isDemoUser || isDemoAdmin
 
     if (!isValidCredential) {
-      setApiError('Incorrect login details. Use demo@quickappointment.com / Pass@123 for demo access.')
+      setApiError('Incorrect login details. Use demo@quickappointment.com / Pass@123 or admin@quickappointment.com / Admin@123.')
       setIsSubmitting(false)
       return
     }
+
+    const session = {
+      identifier: id,
+      name: isDemoAdmin ? 'Admin User' : 'Demo User',
+      role: isDemoAdmin ? 'admin' : 'user',
+    }
+
+    localStorage.setItem('qaUserSession', JSON.stringify(session))
+    localStorage.setItem('authToken', `demo-token-${session.role}`)
 
     setSuccessMessage('Login successful. Redirecting to dashboard...')
     setIsSubmitting(false)
