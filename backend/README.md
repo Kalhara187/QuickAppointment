@@ -6,6 +6,7 @@ Node.js + Express + MySQL backend for authentication and protected routes.
 
 - POST /api/auth/register
 - POST /api/auth/login
+- POST /api/contact
 - GET /api/appointments/me (protected)
 - GET /api/admin/overview (protected + admin)
 
@@ -42,4 +43,17 @@ npm run dev
   "email": "john@example.com",
   "password": "StrongPass123!"
 }
+
+## Sample Contact Payload
+
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "subject": "Need help booking",
+  "message": "I need support with appointment booking."
+}
+```
+
+Contact submissions are stored in the `contacts` table. If SMTP configuration is set in `.env`, the backend also sends an email notification to `CONTACT_ADMIN_EMAIL`.
 ```

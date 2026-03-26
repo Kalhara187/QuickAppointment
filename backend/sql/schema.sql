@@ -9,3 +9,14 @@ CREATE TABLE IF NOT EXISTS users (
   role ENUM('user', 'admin') NOT NULL DEFAULT 'user',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS contacts (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(120) NOT NULL,
+  subject VARCHAR(150) NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_contacts_email (email),
+  INDEX idx_contacts_created_at (created_at)
+);
