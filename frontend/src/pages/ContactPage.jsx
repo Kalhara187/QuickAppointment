@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { contactService } from '../services/contactService'
 
 const initialForm = {
   name: '',
@@ -73,12 +74,14 @@ function ContactPage() {
     setStatus({ type: '', message: '' })
 
     try {
-      // Simulate a request until backend contact endpoint is available.
-      await new Promise((resolve) => setTimeout(resolve, 800))
-      setStatus({ type: 'success', message: 'Message sent successfully. We will get back to you soon.' })
+      const response = await contactService.submitContactForm(formData)
+      setStatus({ type: 'success', message: response?.message || 'Message sent successfully. We will get back to you soon.' })
       setFormData(initialForm)
-    } catch {
-      setStatus({ type: 'error', message: 'Unable to send message right now. Please try again.' })
+    } catch (error) {
+      setStatus({
+        type: 'error',
+        message: error?.response?.data?.message || 'Unable to send message right now. Please try again.',
+      })
     } finally {
       setIsSubmitting(false)
     }
