@@ -14,9 +14,13 @@ Node.js + Express + MySQL backend for authentication, contact requests, and dyna
 - PUT /api/services/:id (admin)
 - DELETE /api/services/:id (admin)
 - GET /api/services/featured
+- POST /api/appointments (authenticated)
+- GET /api/appointments (admin)
+- GET /api/appointments/user (authenticated)
+- PUT /api/appointments/:id (owner/admin)
+- DELETE /api/appointments/:id (owner/admin)
 - GET /api/testimonials
 - GET /api/home
-- GET /api/appointments/me (protected)
 - GET /api/admin/overview (protected + admin)
 
 ## Home Page APIs
@@ -78,6 +82,7 @@ Response:
       "price": 49.99,
       "image": null,
       "icon": "GC",
+      "category": "Consultation",
       "isAvailable": true,
       "isFeatured": true,
       "createdAt": "2026-03-27T10:00:00.000Z",
@@ -98,6 +103,7 @@ Request body:
   "price": 99.99,
   "imageUrl": "https://...",
   "icon": "SN",
+  "category": "Consultation",
   "isFeatured": false
 }
 ```
@@ -108,6 +114,53 @@ Validation:
 - price: 0-999999.99 (optional, can be null)
 - imageUrl: URL string (optional)
 - icon: short code (optional)
+- category: up to 80 characters (optional)
+
+## Book Appointment APIs
+
+### POST /api/appointments
+Create a new appointment for the logged-in user.
+
+Request body:
+```json
+{
+  "serviceId": 1,
+  "date": "2026-04-10",
+  "time": "10:30 AM",
+  "notes": "Need follow-up consultation"
+}
+```
+
+Response:
+```json
+{
+  "message": "Appointment booked successfully",
+  "appointmentId": 101
+}
+```
+
+### GET /api/appointments (Admin only)
+Get all appointments.
+
+### GET /api/appointments/user
+Get appointments for the logged-in user only.
+
+### PUT /api/appointments/:id
+Reschedule or update appointment details. Owner or admin can update.
+
+Updatable fields:
+- date
+- time
+- serviceId
+- notes
+- status (admin only)
+
+### DELETE /api/appointments/:id
+Cancel appointment. Owner or admin can cancel.
+
+Notes:
+- Time-slot conflict checks block overlapping active bookings.
+- Appointments support statuses: pending, confirmed, cancelled.
 
 Response:
 ```json

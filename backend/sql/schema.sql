@@ -28,13 +28,15 @@ CREATE TABLE IF NOT EXISTS services (
   price DECIMAL(10,2) NULL,
   image_url VARCHAR(255) NULL,
   icon VARCHAR(50) NULL,
+  category VARCHAR(80) NULL,
   availability_status TINYINT(1) NOT NULL DEFAULT 1,
   is_featured TINYINT(1) NOT NULL DEFAULT 0,
   featured_rank INT UNSIGNED NOT NULL DEFAULT 999,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_services_available_featured (availability_status, is_featured),
-  INDEX idx_services_featured_rank (featured_rank)
+  INDEX idx_services_featured_rank (featured_rank),
+  INDEX idx_services_category (category)
 );
 
 CREATE TABLE IF NOT EXISTS testimonials (
@@ -49,20 +51,39 @@ CREATE TABLE IF NOT EXISTS testimonials (
   CONSTRAINT chk_testimonials_rating CHECK (rating BETWEEN 1 AND 5)
 );
 
-INSERT INTO services (id, name, description, price, image_url, icon, availability_status, is_featured, featured_rank)
+CREATE TABLE IF NOT EXISTS appointments (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  service_id INT UNSIGNED NOT NULL,
+  appointment_date DATE NOT NULL,
+  appointment_time TIME NOT NULL,
+  status ENUM('pending', 'confirmed', 'cancelled') NOT NULL DEFAULT 'pending',
+  notes VARCHAR(1000) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_appointments_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_appointments_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE RESTRICT,
+  INDEX idx_appointments_user (user_id),
+  INDEX idx_appointments_service (service_id),
+  INDEX idx_appointments_datetime (appointment_date, appointment_time),
+  INDEX idx_appointments_status (status)
+);
+
+INSERT INTO services (id, name, description, price, image_url, icon, category, availability_status, is_featured, featured_rank)
 VALUES
-  (1, 'General Consultation', 'Fast appointments for checkups and everyday health concerns.', 49.99, NULL, 'GC', 1, 1, 1),
-  (2, 'Dental Care', 'Professional cleaning, oral exams, and preventive dental treatment.', 69.99, NULL, 'DC', 1, 1, 2),
-  (3, 'Physiotherapy Session', 'Personalized movement recovery and posture-focused rehabilitation.', 79.99, NULL, 'PT', 1, 1, 3),
-  (4, 'Mental Wellness', 'Confidential counseling sessions for stress and emotional support.', 59.99, NULL, 'MW', 1, 0, 999),
-  (5, 'Skin Treatment', 'Dermatology appointments for skin health and cosmetic concerns.', 89.99, NULL, 'ST', 1, 0, 999),
-  (6, 'Eye Examination', 'Vision assessment and specialist guidance for eye care.', 39.99, NULL, 'EE', 1, 0, 999)
+  (1, 'General Consultation', 'Fast appointments for checkups and everyday health concerns.', 49.99, NULL, 'GC', 'Consultation', 1, 1, 1),
+  (2, 'Dental Care', 'Professional cleaning, oral exams, and preventive dental treatment.', 69.99, NULL, 'DC', 'Dental', 1, 1, 2),
+  (3, 'Physiotherapy Session', 'Personalized movement recovery and posture-focused rehabilitation.', 79.99, NULL, 'PT', 'Rehabilitation', 1, 1, 3),
+  (4, 'Mental Wellness', 'Confidential counseling sessions for stress and emotional support.', 59.99, NULL, 'MW', 'Mental Health', 1, 0, 999),
+  (5, 'Skin Treatment', 'Dermatology appointments for skin health and cosmetic concerns.', 89.99, NULL, 'ST', 'Dermatology', 1, 0, 999),
+  (6, 'Eye Examination', 'Vision assessment and specialist guidance for eye care.', 39.99, NULL, 'EE', 'Vision', 1, 0, 999)
 ON DUPLICATE KEY UPDATE
   name = VALUES(name),
   description = VALUES(description),
   price = VALUES(price),
   image_url = VALUES(image_url),
   icon = VALUES(icon),
+  category = VALUES(category),
   availability_status = VALUES(availability_status),
   is_featured = VALUES(is_featured),
   featured_rank = VALUES(featured_rank);
