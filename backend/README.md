@@ -1,6 +1,6 @@
 # QuickAppointment Backend
 
-Node.js + Express + MySQL backend for authentication, contact requests, and dynamic home page APIs.
+Node.js + Express + MySQL backend for authentication, contact requests, and dynamic home/services page APIs.
 
 ## Endpoints
 
@@ -9,6 +9,10 @@ Node.js + Express + MySQL backend for authentication, contact requests, and dyna
 - POST /api/auth/login
 - POST /api/contact
 - GET /api/services
+- GET /api/services/:id
+- POST /api/services (admin)
+- PUT /api/services/:id (admin)
+- DELETE /api/services/:id (admin)
 - GET /api/services/featured
 - GET /api/testimonials
 - GET /api/home
@@ -21,19 +25,22 @@ Node.js + Express + MySQL backend for authentication, contact requests, and dyna
 Returns all available services.
 
 Query params:
-- limit (optional, max 50)
+- limit (optional, max 50, default 30)
+- search (optional, filters by name or description)
+- sortBy (optional, default 'id', valid: id, name, price, created_at, updated_at)
+- sortOrder (optional, default 'DESC', valid: ASC, DESC)
 
 ### GET /api/services/featured
-Returns featured services only.
+Returns featured services only (cached).
 
 Query params:
-- limit (optional, max 50)
+- limit (optional, max 50, default 6)
 
 ### GET /api/testimonials
-Returns published testimonials.
+Returns published testimonials (cached).
 
 Query params:
-- limit (optional, max 50)
+- limit (optional, max 50, default 6)
 
 ### GET /api/home
 Returns a combined payload for homepage rendering.
@@ -50,6 +57,102 @@ Example response:
   "services": [],
   "featured": [],
   "testimonials": []
+}
+```
+
+## Services Page APIs (CRUD)
+
+### GET /api/services/:id
+Retrieve a single service by ID.
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Service fetched successfully.",
+  "data": {
+    "service": {
+      "id": 1,
+      "name": "General Consultation",
+      "description": "Fast appointments for checkups.",
+      "price": 49.99,
+      "image": null,
+      "icon": "GC",
+      "isAvailable": true,
+      "isFeatured": true,
+      "createdAt": "2026-03-27T10:00:00.000Z",
+      "updatedAt": "2026-03-27T10:00:00.000Z"
+    }
+  }
+}
+```
+
+### POST /api/services (Admin only)
+Create a new service. Requires authentication + admin role.
+
+Request body:
+```json
+{
+  "name": "Service Name",
+  "description": "Detailed service description...",
+  "price": 99.99,
+  "imageUrl": "https://...",
+  "icon": "SN",
+  "isFeatured": false
+}
+```
+
+Validation:
+- name: 3-120 characters (required)
+- description: 10-2000 characters (required)
+- price: 0-999999.99 (optional, can be null)
+- imageUrl: URL string (optional)
+- icon: short code (optional)
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Service created successfully.",
+  "data": {
+    "serviceId": 7
+  }
+}
+```
+
+### PUT /api/services/:id (Admin only)
+Update an existing service. Requires authentication + admin role.
+
+Request body (all fields optional):
+```json
+{
+  "name": "Updated Name",
+  "description": "Updated description...",
+  "price": 149.99,
+  "imageUrl": "https://...",
+  "icon": "UN",
+  "isAvailable": true,
+  "isFeatured": true,
+  "featuredRank": 2
+}
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Service updated successfully."
+}
+```
+
+### DELETE /api/services/:id (Admin only)
+Delete a service. Requires authentication + admin role.
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Service deleted successfully."
 }
 ```
 
