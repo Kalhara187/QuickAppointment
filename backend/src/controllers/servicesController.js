@@ -7,6 +7,7 @@ const VALIDATION_LIMITS = {
   descriptionMin: 10,
   descriptionMax: 2000,
   priceMax: 999999.99,
+  categoryMax: 80,
 }
 
 function sanitizeName(value) {
@@ -22,7 +23,14 @@ function sanitizeDescription(value) {
     .trim()
 }
 
-function validateServiceInput(name, description, price) {
+function sanitizeCategory(value) {
+  return String(value || '')
+    .replace(/\0/g, '')
+    .trim()
+    .replace(/\s+/g, ' ')
+}
+
+function validateServiceInput(name, description, price, category) {
   const errors = []
 
   if (!name || name.length < VALIDATION_LIMITS.nameMin || name.length > VALIDATION_LIMITS.nameMax) {
@@ -40,6 +48,10 @@ function validateServiceInput(name, description, price) {
     }
   }
 
+  if (category !== null && category.length > VALIDATION_LIMITS.categoryMax) {
+    errors.push(`Category must not exceed ${VALIDATION_LIMITS.categoryMax} characters.`)
+  }
+
   return errors
 }
 
@@ -51,6 +63,7 @@ function mapService(service) {
     price: service.price === null ? null : Number(service.price),
     image: service.image,
     icon: service.icon,
+    category: service.category,
     isAvailable: Boolean(service.isAvailable),
     isFeatured: Boolean(service.isFeatured),
     createdAt: service.createdAt,
@@ -61,7 +74,7 @@ function mapService(service) {
 const getServices = asyncHandler(async (req, res) => {
   const limit = Number.parseInt(req.query.limit, 10) || 30
   const actualLimit = Math.min(Math.max(limit, 1), 50)
-  const category = req.query.category ? String(req.query.category).trim() : null
+  const category = req.query.category ? sanitizeCategory(req.query.category) : null
   const search = req.query.search ? String(req.query.search).trim() : null
   const sortBy = req.query.sortBy || 'id'
   const sortOrder = (req.query.sortOrder || 'DESC').toUpperCase()
@@ -84,6 +97,7 @@ const getServices = asyncHandler(async (req, res) => {
       price,
       image_url AS image,
       icon,
+      category,
       availability_status AS isAvailable,
       is_featured AS isFeatured,
       created_at AS createdAt,
@@ -93,8 +107,13 @@ const getServices = asyncHandler(async (req, res) => {
   `
   const params = []
 
+  if (category) {
+    sql += ' AND category = ?'
+    params.push(category)
+  }
+
   if (search) {
-    sql += ` AND (name LIKE ? OR description LIKE ?)`
+    sql += ' AND (name LIKE ? OR description LIKE ?)'
     params.push(`%${search}%`, `%${search}%`)
   }
 
@@ -130,6 +149,7 @@ const getServiceById = asyncHandler(async (req, res) => {
       price,
       image_url AS image,
       icon,
+      category,
       availability_status AS isAvailable,
       is_featured AS isFeatured,
       featured_rank AS featuredRank,
@@ -163,9 +183,10 @@ const createService = asyncHandler(async (req, res) => {
   const price = req.body?.price !== undefined && req.body?.price !== null ? Number(req.body.price) : null
   const imageUrl = req.body?.imageUrl ? String(req.body.imageUrl).trim() : null
   const icon = req.body?.icon ? String(req.body.icon).trim() : null
+  const category = req.body?.category ? sanitizeCategory(req.body.category) : null
   const isFeatured = Boolean(req.body?.isFeatured)
 
-  const validationErrors = validateServiceInput(name, description, price)
+  const validationErrors = validateServiceInput(name, description, price, category)
 
   if (validationErrors.length > 0) {
     return res.status(400).json({
@@ -176,11 +197,11 @@ const createService = asyncHandler(async (req, res) => {
   }
 
   const sql = `
-    INSERT INTO services (name, description, price, image_url, icon, availability_status, is_featured)
-    VALUES (?, ?, ?, ?, ?, 1, ?)
+    INSERT INTO services (name, description, price, image_url, icon, category, availability_status, is_featured)
+    VALUES (?, ?, ?, ?, ?, ?, 1, ?)
   `
 
-  const [result] = await pool.execute(sql, [name, description, price, imageUrl, icon, isFeatured ? 1 : 0])
+  const [result] = await pool.execute(sql, [name, description, price, imageUrl, icon, category, isFeatured ? 1 : 0])
 
   return res.status(201).json({
     success: true,
@@ -211,14 +232,13 @@ const updateService = asyncHandler(async (req, res) => {
   }
 
   const updates = {}
-  const params = []
 
   if (req.body.name !== undefined) {
     const sanitized = sanitizeName(req.body.name)
-    if (sanitized.length < 3 || sanitized.length > 120) {
+    if (sanitized.length < VALIDATION_LIMITS.nameMin || sanitized.length > VALIDATION_LIMITS.nameMax) {
       return res.status(400).json({
         success: false,
-        message: 'Service name must be between 3 and 120 characters.',
+        message: `Service name must be between ${VALIDATION_LIMITS.nameMin} and ${VALIDATION_LIMITS.nameMax} characters.`,
       })
     }
     updates.name = sanitized
@@ -226,10 +246,10 @@ const updateService = asyncHandler(async (req, res) => {
 
   if (req.body.description !== undefined) {
     const sanitized = sanitizeDescription(req.body.description)
-    if (sanitized.length < 10 || sanitized.length > 2000) {
+    if (sanitized.length < VALIDATION_LIMITS.descriptionMin || sanitized.length > VALIDATION_LIMITS.descriptionMax) {
       return res.status(400).json({
         success: false,
-        message: 'Description must be between 10 and 2000 characters.',
+        message: `Description must be between ${VALIDATION_LIMITS.descriptionMin} and ${VALIDATION_LIMITS.descriptionMax} characters.`,
       })
     }
     updates.description = sanitized
@@ -238,10 +258,10 @@ const updateService = asyncHandler(async (req, res) => {
   if (req.body.price !== undefined) {
     if (req.body.price !== null) {
       const parsed = Number(req.body.price)
-      if (Number.isNaN(parsed) || parsed < 0 || parsed > 999999.99) {
+      if (Number.isNaN(parsed) || parsed < 0 || parsed > VALIDATION_LIMITS.priceMax) {
         return res.status(400).json({
           success: false,
-          message: 'Price must be a valid number between 0 and 999999.99.',
+          message: `Price must be a valid number between 0 and ${VALIDATION_LIMITS.priceMax}.`,
         })
       }
       updates.price = parsed
@@ -256,6 +276,19 @@ const updateService = asyncHandler(async (req, res) => {
 
   if (req.body.icon !== undefined) {
     updates.icon = req.body.icon ? String(req.body.icon).trim() : null
+  }
+
+  if (req.body.category !== undefined) {
+    const category = req.body.category ? sanitizeCategory(req.body.category) : null
+
+    if (category && category.length > VALIDATION_LIMITS.categoryMax) {
+      return res.status(400).json({
+        success: false,
+        message: `Category must not exceed ${VALIDATION_LIMITS.categoryMax} characters.`,
+      })
+    }
+
+    updates.category = category
   }
 
   if (req.body.isAvailable !== undefined) {

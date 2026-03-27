@@ -1,14 +1,6 @@
 const pool = require('../config/db')
 const asyncHandler = require('../utils/asyncHandler')
 
-const VALIDATION_LIMITS = {
-  nameMin: 3,
-  nameMax: 120,
-  descriptionMin: 10,
-  descriptionMax: 2000,
-  priceMax: 999999.99,
-}
-
 const DEFAULT_LIMITS = {
   services: 30,
   featured: Number(process.env.HOMEPAGE_FEATURED_LIMIT || 6),
@@ -59,6 +51,7 @@ function mapService(service) {
     price: service.price === null ? null : Number(service.price),
     image: service.image,
     icon: service.icon,
+    category: service.category,
     isAvailable: Boolean(service.isAvailable),
     isFeatured: Boolean(service.isFeatured),
   }
@@ -83,6 +76,7 @@ async function queryServices({ featuredOnly = false, limit = DEFAULT_LIMITS.serv
       price,
       image_url AS image,
       icon,
+      category,
       availability_status AS isAvailable,
       is_featured AS isFeatured,
       featured_rank AS featuredRank
@@ -211,3 +205,4 @@ module.exports = {
   getTestimonials,
   getHomeData,
 }
+
