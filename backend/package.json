@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "check": "node --check src/server.js && node --check src/app.js && node --check src/controllers/authController.js && node --check src/controllers/contactController.js && node --check src/controllers/homeController.js && node --check src/routes/contactRoutes.js && node --check src/routes/servicesRoutes.js && node --check src/routes/testimonialsRoutes.js && node --check src/routes/homeRoutes.js && node --check src/middleware/contactRateLimiter.js && node --check src/utils/contactMailer.js"
+    "check": "node --check src/server.js && node --check src/app.js && node --check src/controllers/authController.js && node --check src/controllers/contactController.js && node --check src/controllers/homeController.js && node --check src/controllers/servicesController.js && node --check src/routes/contactRoutes.js && node --check src/routes/servicesRoutes.js && node --check src/routes/testimonialsRoutes.js && node --check src/routes/homeRoutes.js && node --check src/middleware/contactRateLimiter.js && node --check src/utils/contactMailer.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

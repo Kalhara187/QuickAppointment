@@ -1,6 +1,14 @@
 const pool = require('../config/db')
 const asyncHandler = require('../utils/asyncHandler')
 
+const VALIDATION_LIMITS = {
+  nameMin: 3,
+  nameMax: 120,
+  descriptionMin: 10,
+  descriptionMax: 2000,
+  priceMax: 999999.99,
+}
+
 const DEFAULT_LIMITS = {
   services: 30,
   featured: Number(process.env.HOMEPAGE_FEATURED_LIMIT || 6),
