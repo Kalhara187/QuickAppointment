@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { authService } from '../services/authService'
 import './AuthPages.css'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -41,6 +42,7 @@ function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [errors, setErrors] = useState({})
+  const [apiError, setApiError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
 
@@ -51,6 +53,7 @@ function RegisterPage() {
   const updateField = (name, value) => {
     setFields((prev) => ({ ...prev, [name]: value }))
     setErrors((prev) => ({ ...prev, [name]: undefined }))
+    setApiError('')
   }
 
   const validateFields = () => {
@@ -96,16 +99,26 @@ function RegisterPage() {
 
     setErrors({})
     setIsSubmitting(true)
+    setApiError('')
     setSuccessMessage('')
 
-    await new Promise((resolve) => setTimeout(resolve, 1400))
+    try {
+      await authService.register({
+        name: fields.fullName.trim(),
+        email: fields.email.trim().toLowerCase(),
+        password: fields.password,
+      })
 
-    setIsSubmitting(false)
-    setSuccessMessage('Account created successfully. Redirecting to login...')
+      setSuccessMessage('Account created successfully. Redirecting to login...')
 
-    setTimeout(() => {
-      navigate('/login')
-    }, 900)
+      setTimeout(() => {
+        navigate('/login')
+      }, 900)
+    } catch (error) {
+      setApiError(error?.response?.data?.message || 'Unable to register right now. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -240,6 +253,10 @@ function RegisterPage() {
             </span>
           </label>
           {errors.termsAccepted && <p className="-mt-2 text-xs font-semibold text-rose-600">{errors.termsAccepted}</p>}
+
+          {apiError && (
+            <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{apiError}</p>
+          )}
 
           {successMessage && (
             <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">

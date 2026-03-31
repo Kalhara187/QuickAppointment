@@ -1,32 +1,13 @@
-import axios from 'axios'
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
-
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
-
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken')
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-
-  return config
-})
+import apiClient from './apiClient'
 
 export const appointmentService = {
-  async getAppointments() {
+  async getAdminAppointments() {
     const response = await apiClient.get('/appointments')
     return response.data
   },
 
-  async getAppointment(id) {
-    const response = await apiClient.get(`/appointments/${id}`)
+  async getMyAppointments() {
+    const response = await apiClient.get('/appointments/user')
     return response.data
   },
 
@@ -40,10 +21,10 @@ export const appointmentService = {
     return response.data
   },
 
-  async deleteAppointment(id) {
+  async cancelAppointment(id) {
     const response = await apiClient.delete(`/appointments/${id}`)
     return response.data
   },
 }
 
-export default apiClient
+export default appointmentService
