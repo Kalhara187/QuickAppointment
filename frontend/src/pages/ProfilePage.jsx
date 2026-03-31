@@ -45,7 +45,6 @@ function ProfilePage() {
     setProfile((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSave = (event) => {
   const handleSave = async (event) => {
     event.preventDefault()
 

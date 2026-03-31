@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { homeService } from '../services/homeService'
 
-const services = [
+const fallbackServices = [
   {
     name: 'General Consultation',
     description: 'Fast appointments for checkups and everyday health concerns.',
@@ -61,7 +62,7 @@ const steps = [
   },
 ]
 
-const testimonials = [
+const fallbackTestimonials = [
   {
     name: 'Aanya Verma',
     role: 'Working Professional',
@@ -89,18 +90,64 @@ const quickTimes = ['09:00 AM', '10:30 AM', '12:00 PM', '02:00 PM', '04:30 PM', 
 
 function HomePage() {
   const navigate = useNavigate()
-  const [selectedService, setSelectedService] = useState(services[0].name)
+  const [services, setServices] = useState(fallbackServices)
+  const [testimonials, setTestimonials] = useState(fallbackTestimonials)
+  const [selectedService, setSelectedService] = useState(fallbackServices[0].name)
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState(quickTimes[0])
   const [activeTestimonial, setActiveTestimonial] = useState(0)
 
   useEffect(() => {
+    const loadHomeData = async () => {
+      try {
+        const response = await homeService.getHomeData({ servicesLimit: 6, featuredLimit: 6, testimonialsLimit: 6 })
+
+        if (Array.isArray(response?.services) && response.services.length > 0) {
+          const mappedServices = response.services.map((item) => ({
+            name: item.name,
+            description: item.description,
+            iconCode: item.icon || item.name.slice(0, 2).toUpperCase(),
+            popularity: item.isFeatured ? 'Featured' : 'Available',
+            rating: 4.8,
+          }))
+          setServices(mappedServices)
+          setSelectedService((prev) => prev || mappedServices[0].name)
+        }
+
+        if (Array.isArray(response?.testimonials) && response.testimonials.length > 0) {
+          const mappedTestimonials = response.testimonials.map((item) => ({
+            name: item.userName,
+            role: 'Verified User',
+            image: item.userName
+              .split(' ')
+              .slice(0, 2)
+              .map((part) => part[0] || '')
+              .join('')
+              .toUpperCase(),
+            quote: item.comment,
+            rating: item.rating,
+          }))
+          setTestimonials(mappedTestimonials)
+        }
+      } catch {
+        // Keep fallback content when API is unavailable.
+      }
+    }
+
+    loadHomeData()
+  }, [])
+
+  useEffect(() => {
+    if (testimonials.length === 0) {
+      return undefined
+    }
+
     const timer = setInterval(() => {
       setActiveTestimonial((prev) => (prev + 1) % testimonials.length)
     }, 4500)
 
     return () => clearInterval(timer)
-  }, [])
+  }, [testimonials.length])
 
   const minDate = useMemo(() => {
     const now = new Date()

@@ -1,94 +1,41 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-
-const serviceCards = [
-  {
-    title: 'Clinic Scheduling',
-    description: 'Manage doctor and patient bookings with clean daily and weekly slots.',
-    category: 'Scheduling',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-8 w-8" aria-hidden="true">
-        <rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" strokeWidth="1.8" />
-        <path d="M8 3.5V7M16 3.5V7M8 11h8M8 15h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Automated Reminders',
-    description: 'Send confirmation and reminder notifications so fewer appointments are missed.',
-    category: 'Communication',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-8 w-8" aria-hidden="true">
-        <path
-          d="M18 8a6 6 0 01-7.5 5.9M9 18h6M7 18.5v2M17 18.5v2M8 8.5l-2-2M16 8.5l2-2"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-  },
-  {
-    title: 'Team Calendar Sync',
-    description: 'Keep staff availability aligned across locations and service categories.',
-    category: 'Scheduling',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-8 w-8" aria-hidden="true">
-        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" stroke="currentColor" strokeWidth="1.8" />
-        <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Real-Time Availability',
-    description: 'Instant slot updates ensure no double bookings across your entire team.',
-    category: 'Availability',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-8 w-8" aria-hidden="true">
-        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
-        <path d="M12 6v6l4.24 2.12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Client Management',
-    description: 'Organize client details, preferences, and history in one centralized hub.',
-    category: 'Management',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-8 w-8" aria-hidden="true">
-        <path d="M12 11a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-        <path d="M3 20c0-3.5 4.5-7 9-7s9 3.5 9 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Analytics & Reports',
-    description: 'Gain insights into booking trends and business performance metrics.',
-    category: 'Analytics',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-8 w-8" aria-hidden="true">
-        <path d="M3 12h2v9H3zM7 8h2v13H7zM11 4h2v17h-2zM15 6h2v15h-2zM19 5h2v16h-2z" stroke="currentColor" strokeWidth="1.8" />
-      </svg>
-    ),
-  },
-]
+import { servicesService } from '../services/servicesService'
 
 function ServicesPage() {
+  const [services, setServices] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [activeCategory, setActiveCategory] = useState('All')
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
 
-  const categories = useMemo(() => ['All', ...new Set(serviceCards.map((item) => item.category))], [])
+  useEffect(() => {
+    const loadServices = async () => {
+      try {
+        setIsLoading(true)
+        const response = await servicesService.getServices({ limit: 50, sortBy: 'id', sortOrder: 'DESC' })
+        setServices(response?.data?.services || [])
+      } catch (error) {
+        setErrorMessage(error?.response?.data?.message || 'Unable to load services.')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadServices()
+  }, [])
+
+  const categories = useMemo(() => ['All', ...new Set(services.map((item) => item.category).filter(Boolean))], [services])
 
   const filteredServices = useMemo(() => {
     const query = searchTerm.trim().toLowerCase()
-    return serviceCards.filter((service) => {
+    return services.filter((service) => {
       const categoryMatch = activeCategory === 'All' || service.category === activeCategory
       const searchMatch =
-        !query || service.title.toLowerCase().includes(query) || service.description.toLowerCase().includes(query)
+        !query || service.name.toLowerCase().includes(query) || service.description.toLowerCase().includes(query)
       return categoryMatch && searchMatch
     })
-  }, [searchTerm, activeCategory])
+  }, [searchTerm, activeCategory, services])
 
   return (
     <div className="page services-page px-4 pb-8 sm:px-6">
@@ -138,22 +85,27 @@ function ServicesPage() {
       </section>
 
       <section className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {isLoading && <p className="text-sm text-slate-600">Loading services...</p>}
+        {!isLoading && errorMessage && <p className="text-sm text-rose-700">{errorMessage}</p>}
         {filteredServices.map((service) => (
           <article
-            key={service.title}
+            key={service.id}
             className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
           >
-            <div className="inline-flex rounded-xl bg-sky-50 p-4 text-sky-700 transition-all duration-300 group-hover:bg-sky-100 group-hover:scale-110">
-              {service.icon}
+            <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 p-4 text-sky-700 transition-all duration-300 group-hover:bg-sky-100 group-hover:scale-110">
+              {service.icon || service.name.slice(0, 2).toUpperCase()}
             </div>
-            <h2 className="mt-4 text-lg font-semibold text-slate-900">{service.title}</h2>
+            <h2 className="mt-4 text-lg font-semibold text-slate-900">{service.name}</h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">{service.description}</p>
             <div className="mt-4 flex items-center justify-between">
-              <span className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700">{service.category}</span>
-              <Link to="/book-appointment" className="text-sm font-semibold text-sky-700 hover:text-sky-800">
+              <span className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700">{service.category || 'General'}</span>
+              <Link to="/book-appointment" state={{ service: service.name }} className="text-sm font-semibold text-sky-700 hover:text-sky-800">
                 Book Now
               </Link>
             </div>
+            <p className="mt-3 text-sm font-semibold text-emerald-700">
+              {service.price !== null ? `$${Number(service.price).toFixed(2)}` : 'Contact for pricing'}
+            </p>
           </article>
         ))}
       </section>
