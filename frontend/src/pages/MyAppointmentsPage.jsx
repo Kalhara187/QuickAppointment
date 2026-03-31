@@ -1,16 +1,39 @@
-import { useMemo, useState } from 'react'
-
-const demoAppointments = [
-  { id: 1, service: 'General Consultation', date: '2026-03-27', time: '10:30 AM', status: 'confirmed' },
-  { id: 2, service: 'Dental Care', date: '2026-03-30', time: '02:00 PM', status: 'pending' },
-  { id: 3, service: 'Physiotherapy Session', date: '2026-03-16', time: '11:00 AM', status: 'cancelled' },
-]
+import { useEffect, useMemo, useState } from 'react'
+import { appointmentService } from '../services/appointmentService'
 
 const filters = ['all', 'pending', 'confirmed', 'cancelled']
 
 function MyAppointmentsPage() {
-  const [appointments, setAppointments] = useState(demoAppointments)
+  const [appointments, setAppointments] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
   const [activeFilter, setActiveFilter] = useState('all')
+
+  useEffect(() => {
+    const loadAppointments = async () => {
+      try {
+        setIsLoading(true)
+        setErrorMessage('')
+        const response = await appointmentService.getMyAppointments()
+        const rows = response?.data?.appointments || []
+        setAppointments(
+          rows.map((item) => ({
+            id: item.id,
+            service: item.serviceName,
+            date: item.date,
+            time: item.time,
+            status: item.status,
+          })),
+        )
+      } catch (error) {
+        setErrorMessage(error?.response?.data?.message || 'Unable to load appointments.')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadAppointments()
+  }, [])
 
   const filteredAppointments = useMemo(() => {
     if (activeFilter === 'all') {
@@ -19,8 +42,28 @@ function MyAppointmentsPage() {
     return appointments.filter((item) => item.status === activeFilter)
   }, [activeFilter, appointments])
 
-  const updateStatus = (id, status) => {
-    setAppointments((prev) => prev.map((item) => (item.id === id ? { ...item, status } : item)))
+  const updateStatus = async (id, status) => {
+    try {
+      if (status === 'cancelled') {
+        await appointmentService.cancelAppointment(id)
+      } else {
+        await appointmentService.updateAppointment(id, { status })
+      }
+      setAppointments((prev) => prev.map((item) => (item.id === id ? { ...item, status } : item)))
+    } catch (error) {
+      setErrorMessage(error?.response?.data?.message || 'Unable to update appointment.')
+    }
+  }
+
+  const requestReschedule = async (id) => {
+    try {
+      await appointmentService.updateAppointment(id, {
+        notes: 'Reschedule requested by user.',
+      })
+      setErrorMessage('')
+    } catch (error) {
+      setErrorMessage(error?.response?.data?.message || 'Unable to request reschedule.')
+    }
   }
 
   const badgeClass = (status) => {
@@ -54,6 +97,18 @@ function MyAppointmentsPage() {
         </div>
 
         <div className="mt-6 space-y-4">
+          {isLoading && (
+            <div className="rounded-xl border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-600">
+              Loading appointments...
+            </div>
+          )}
+
+          {!isLoading && errorMessage && (
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-6 text-center text-sm text-rose-700">
+              {errorMessage}
+            </div>
+          )}
+
           {filteredAppointments.length === 0 && (
             <div className="rounded-xl border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-600">
               No appointments found for this filter.
@@ -76,7 +131,7 @@ function MyAppointmentsPage() {
                 <button
                   type="button"
                   className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-sky-600 hover:text-sky-700"
-                  onClick={() => updateStatus(appointment.id, 'pending')}
+                  onClick={() => requestReschedule(appointment.id)}
                 >
                   Reschedule
                 </button>
