@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { usersService } from '../services/usersService'
 
 const initialProfile = {
   fullName: 'Demo User',
@@ -12,6 +13,27 @@ function ProfilePage() {
   const [profile, setProfile] = useState(initialProfile)
   const [editing, setEditing] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const response = await usersService.getMyProfile()
+        const user = response?.data?.user
+        if (user) {
+          setProfile((prev) => ({
+            ...prev,
+            fullName: user.name || prev.fullName,
+            email: user.email || prev.email,
+          }))
+        }
+      } catch (error) {
+        setErrorMessage(error?.response?.data?.message || 'Unable to load profile.')
+      }
+    }
+
+    loadProfile()
+  }, [])
 
   const initials = useMemo(() => {
     const parts = profile.fullName.trim().split(' ')
@@ -24,9 +46,43 @@ function ProfilePage() {
   }
 
   const handleSave = (event) => {
+  const handleSave = async (event) => {
     event.preventDefault()
-    setEditing(false)
-    setStatusMessage('Profile updated successfully.')
+
+    try {
+      const response = await usersService.updateMyProfile({
+        name: profile.fullName,
+        email: profile.email,
+      })
+
+      const user = response?.data?.user
+      if (user) {
+        const existingSession = localStorage.getItem('qaUserSession')
+        if (existingSession) {
+          try {
+            const parsed = JSON.parse(existingSession)
+            localStorage.setItem(
+              'qaUserSession',
+              JSON.stringify({
+                ...parsed,
+                name: user.name,
+                identifier: user.email,
+              }),
+            )
+            window.dispatchEvent(new Event('qa-auth-changed'))
+          } catch {
+            // Keep profile update successful even if old local session was malformed.
+          }
+        }
+      }
+
+      setErrorMessage('')
+      setEditing(false)
+      setStatusMessage('Profile updated successfully.')
+    } catch (error) {
+      setStatusMessage('')
+      setErrorMessage(error?.response?.data?.message || 'Unable to update profile.')
+    }
   }
 
   return (
@@ -60,6 +116,12 @@ function ProfilePage() {
           {statusMessage && (
             <p className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
               {statusMessage}
+            </p>
+          )}
+
+          {errorMessage && (
+            <p className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700">
+              {errorMessage}
             </p>
           )}
 
