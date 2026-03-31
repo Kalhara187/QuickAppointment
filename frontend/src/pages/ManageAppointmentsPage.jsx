@@ -1,16 +1,44 @@
-import { useState } from 'react'
-
-const initialRows = [
-  { id: 101, user: 'Aanya Verma', service: 'General Consultation', slot: '2026-03-26 09:30 AM', status: 'pending' },
-  { id: 102, user: 'Daniel Brooks', service: 'Dental Care', slot: '2026-03-26 12:00 PM', status: 'confirmed' },
-  { id: 103, user: 'Sofia Khan', service: 'Skin Treatment', slot: '2026-03-27 03:00 PM', status: 'pending' },
-]
+import { useEffect, useState } from 'react'
+import { appointmentService } from '../services/appointmentService'
 
 function ManageAppointmentsPage() {
-  const [rows, setRows] = useState(initialRows)
+  const [rows, setRows] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
 
-  const setStatus = (id, nextStatus) => {
-    setRows((prev) => prev.map((row) => (row.id === id ? { ...row, status: nextStatus } : row)))
+  useEffect(() => {
+    const loadRows = async () => {
+      try {
+        setIsLoading(true)
+        setErrorMessage('')
+        const response = await appointmentService.getAdminAppointments()
+        const appointments = response?.data?.appointments || []
+        setRows(
+          appointments.map((item) => ({
+            id: item.id,
+            user: item.userName,
+            service: item.serviceName,
+            slot: `${item.date} ${item.time}`,
+            status: item.status,
+          })),
+        )
+      } catch (error) {
+        setErrorMessage(error?.response?.data?.message || 'Unable to load appointments.')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadRows()
+  }, [])
+
+  const setStatus = async (id, nextStatus) => {
+    try {
+      await appointmentService.updateAppointment(id, { status: nextStatus })
+      setRows((prev) => prev.map((row) => (row.id === id ? { ...row, status: nextStatus } : row)))
+    } catch (error) {
+      setErrorMessage(error?.response?.data?.message || 'Unable to update status.')
+    }
   }
 
   const statusClass = (status) => {
@@ -24,6 +52,18 @@ function ManageAppointmentsPage() {
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <h1 className="text-3xl font-bold text-slate-900">Manage Appointments</h1>
         <p className="mt-2 text-sm text-slate-600">Approve or cancel appointment requests.</p>
+
+        {errorMessage && (
+          <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700">
+            {errorMessage}
+          </div>
+        )}
+
+        {isLoading && (
+          <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
+            Loading appointments...
+          </div>
+        )}
 
         <div className="mt-6 overflow-x-auto">
           <table className="min-w-full border-collapse text-left text-sm">

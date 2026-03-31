@@ -1,4 +1,4 @@
-import apiClient from './appointmentService'
+import apiClient from './apiClient'
 
 export const contactService = {
   async submitContactForm(data) {
