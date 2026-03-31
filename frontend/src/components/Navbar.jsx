@@ -36,7 +36,11 @@ export function Navbar() {
 
     hydrateSession()
     window.addEventListener('storage', hydrateSession)
-    return () => window.removeEventListener('storage', hydrateSession)
+    window.addEventListener('qa-auth-changed', hydrateSession)
+    return () => {
+      window.removeEventListener('storage', hydrateSession)
+      window.removeEventListener('qa-auth-changed', hydrateSession)
+    }
   }, [])
 
   useEffect(() => {
@@ -62,6 +66,7 @@ export function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem('qaUserSession')
     localStorage.removeItem('authToken')
+    window.dispatchEvent(new Event('qa-auth-changed'))
     setIsAuthenticated(false)
     setUserRole(null)
     setUserName(null)

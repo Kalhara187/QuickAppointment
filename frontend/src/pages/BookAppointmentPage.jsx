@@ -1,15 +1,8 @@
-import { useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Toast } from '../components'
-
-const availableServices = [
-  'General Consultation',
-  'Dental Care',
-  'Physiotherapy Session',
-  'Mental Wellness',
-  'Skin Treatment',
-  'Eye Examination',
-]
+import { appointmentService } from '../services/appointmentService'
+import { servicesService } from '../services/servicesService'
 
 const availableTimes = ['09:00 AM', '10:30 AM', '12:00 PM', '02:00 PM', '04:30 PM', '06:00 PM']
 
@@ -50,13 +43,16 @@ const steps = [
 ]
 
 function BookAppointmentPage() {
+  const navigate = useNavigate()
   const location = useLocation()
   const initialState = location.state || {}
+  const [services, setServices] = useState([])
+  const [isLoadingServices, setIsLoadingServices] = useState(true)
   const [activeStep, setActiveStep] = useState(0)
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
-    service: initialState.service || availableServices[0],
+    serviceId: '',
     date: initialState.date || '',
     time: initialState.time || availableTimes[0],
     notes: '',
@@ -66,6 +62,43 @@ function BookAppointmentPage() {
   const [status, setStatus] = useState({ type: '', message: '' })
   const [toast, setToast] = useState({ open: false, type: 'success', message: '' })
 
+  useEffect(() => {
+    const loadServices = async () => {
+      try {
+        setIsLoadingServices(true)
+        const response = await servicesService.getServices({ limit: 50 })
+        const nextServices = response?.data?.services || []
+        setServices(nextServices)
+
+        setFormData((prev) => {
+          if (prev.serviceId) {
+            return prev
+          }
+
+          const fromState = String(initialState.service || '').toLowerCase()
+          const matched = nextServices.find((item) => item.name.toLowerCase() === fromState)
+          const fallbackId = matched?.id || nextServices[0]?.id || ''
+
+          return {
+            ...prev,
+            serviceId: String(fallbackId),
+          }
+        })
+      } catch {
+        setToast({ open: true, type: 'error', message: 'Unable to load services right now.' })
+      } finally {
+        setIsLoadingServices(false)
+      }
+    }
+
+    loadServices()
+  }, [initialState.service])
+
+  const selectedService = useMemo(
+    () => services.find((item) => String(item.id) === String(formData.serviceId)),
+    [services, formData.serviceId],
+  )
+
   const minDate = new Date().toISOString().split('T')[0]
 
   const updateField = (name, value) => {
@@ -74,13 +107,14 @@ function BookAppointmentPage() {
   }
 
   const availabilityCount =
-    ((formData.service.length + (formData.date ? formData.date.length : 3) + formData.time.length) % 7) + 2
+    (((selectedService?.name?.length || 3) + (formData.date ? formData.date.length : 3) + formData.time.length) % 7) + 2
 
   const validate = () => {
     const nextErrors = {}
     if (!formData.fullName.trim()) nextErrors.fullName = 'Full name is required.'
     if (!formData.email.trim()) nextErrors.email = 'Email is required.'
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) nextErrors.email = 'Enter a valid email.'
+    if (!formData.serviceId) nextErrors.serviceId = 'Please select a service.'
     if (!formData.date) nextErrors.date = 'Please select a date.'
     return nextErrors
   }
@@ -101,15 +135,28 @@ function BookAppointmentPage() {
     setIsSubmitting(true)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 900))
+      if (!localStorage.getItem('authToken')) {
+        setStatus({ type: 'error', message: 'Please login before booking an appointment.' })
+        setToast({ open: true, type: 'error', message: 'Login required to book.' })
+        navigate('/login')
+        return
+      }
+
+      await appointmentService.createAppointment({
+        serviceId: Number(formData.serviceId),
+        date: formData.date,
+        time: formData.time,
+        notes: formData.notes,
+      })
+
       setStatus({
         type: 'success',
-        message: `Booking confirmed for ${formData.service} on ${formData.date} at ${formData.time}.`,
+        message: `Booking confirmed for ${selectedService?.name || 'selected service'} on ${formData.date} at ${formData.time}.`,
       })
       setToast({ open: true, type: 'success', message: 'Appointment booked successfully.' })
       setFormData((prev) => ({ ...prev, notes: '' }))
-    } catch {
-      setStatus({ type: 'error', message: 'Unable to complete booking right now. Please try again.' })
+    } catch (error) {
+      setStatus({ type: 'error', message: error?.response?.data?.message || 'Unable to complete booking right now. Please try again.' })
       setToast({ open: true, type: 'error', message: 'Booking failed. Please try again.' })
     } finally {
       setIsSubmitting(false)
@@ -221,14 +268,16 @@ function BookAppointmentPage() {
           <label className="space-y-1">
             <span className="text-sm font-medium text-slate-700">Service</span>
             <select
-              value={formData.service}
-              onChange={(event) => updateField('service', event.target.value)}
+              value={formData.serviceId}
+              onChange={(event) => updateField('serviceId', event.target.value)}
+              disabled={isLoadingServices}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
             >
-              {availableServices.map((service) => (
-                <option key={service} value={service}>{service}</option>
+              {services.map((service) => (
+                <option key={service.id} value={service.id}>{service.name}</option>
               ))}
             </select>
+            {errors.serviceId && <span className="text-xs font-semibold text-rose-600">{errors.serviceId}</span>}
           </label>
 
           <label className="space-y-1">

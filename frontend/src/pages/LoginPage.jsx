@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { authService } from '../services/authService'
 import './AuthPages.css'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const initialFields = {
-  identifier: '',
+  email: '',
   password: '',
   remember: false,
 }
@@ -19,17 +20,17 @@ function LoginPage() {
   const [successMessage, setSuccessMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const isEmailInput = useMemo(() => fields.identifier.includes('@'), [fields.identifier])
+  const isEmailInput = useMemo(() => fields.email.includes('@'), [fields.email])
 
   const validateFields = () => {
     const nextErrors = {}
 
-    if (!fields.identifier.trim()) {
-      nextErrors.identifier = 'Email or username is required.'
+    if (!fields.email.trim()) {
+      nextErrors.email = 'Email is required.'
     }
 
-    if (isEmailInput && !EMAIL_REGEX.test(fields.identifier.trim())) {
-      nextErrors.identifier = 'Enter a valid email address.'
+    if (isEmailInput && !EMAIL_REGEX.test(fields.email.trim())) {
+      nextErrors.email = 'Enter a valid email address.'
     }
 
     if (!fields.password.trim()) {
@@ -59,34 +60,38 @@ function LoginPage() {
     setSuccessMessage('')
     setIsSubmitting(true)
 
-    await new Promise((resolve) => setTimeout(resolve, 1300))
+    try {
+      const response = await authService.login({
+        email: fields.email.trim().toLowerCase(),
+        password: fields.password,
+      })
 
-    const id = fields.identifier.trim().toLowerCase()
-    const isDemoUser = (id === 'demo@quickappointment.com' || id === 'demo') && fields.password === 'Pass@123'
-    const isDemoAdmin = (id === 'admin@quickappointment.com' || id === 'admin') && fields.password === 'Admin@123'
-    const isValidCredential = isDemoUser || isDemoAdmin
+      const token = response?.data?.token
+      const user = response?.data?.user
 
-    if (!isValidCredential) {
-      setApiError('Incorrect login details. Use demo@quickappointment.com / Pass@123 or admin@quickappointment.com / Admin@123.')
+      if (!token || !user) {
+        throw new Error('Invalid login response')
+      }
+
+      localStorage.setItem('authToken', token)
+      localStorage.setItem(
+        'qaUserSession',
+        JSON.stringify({
+          id: user.id,
+          identifier: user.email,
+          name: user.name,
+          role: user.role,
+        }),
+      )
+      window.dispatchEvent(new Event('qa-auth-changed'))
+
+      setSuccessMessage('Login successful. Redirecting...')
+      navigate(user.role === 'admin' ? '/admin/dashboard' : '/')
+    } catch (error) {
+      setApiError(error?.response?.data?.message || 'Unable to login. Please try again.')
+    } finally {
       setIsSubmitting(false)
-      return
     }
-
-    const session = {
-      identifier: id,
-      name: isDemoAdmin ? 'Admin User' : 'Demo User',
-      role: isDemoAdmin ? 'admin' : 'user',
-    }
-
-    localStorage.setItem('qaUserSession', JSON.stringify(session))
-    localStorage.setItem('authToken', `demo-token-${session.role}`)
-
-    setSuccessMessage('Login successful. Redirecting to dashboard...')
-    setIsSubmitting(false)
-
-    setTimeout(() => {
-      navigate('/')
-    }, 850)
   }
 
   return (
@@ -100,22 +105,22 @@ function LoginPage() {
 
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <div>
-            <label htmlFor="identifier" className="mb-1.5 block text-sm font-semibold text-slate-800">
-              Email / Username
+            <label htmlFor="email" className="mb-1.5 block text-sm font-semibold text-slate-800">
+              Email
             </label>
             <div className="relative">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">@</span>
               <input
-                id="identifier"
-                type="text"
+                id="email"
+                type="email"
                 autoComplete="username"
-                placeholder="demo@quickappointment.com"
-                value={fields.identifier}
-                onChange={(event) => updateField('identifier', event.target.value)}
+                placeholder="you@example.com"
+                value={fields.email}
+                onChange={(event) => updateField('email', event.target.value)}
                 className="auth-input pl-8"
               />
             </div>
-            {errors.identifier && <p className="mt-1.5 text-xs font-semibold text-rose-600">{errors.identifier}</p>}
+            {errors.email && <p className="mt-1.5 text-xs font-semibold text-rose-600">{errors.email}</p>}
           </div>
 
           <div>
