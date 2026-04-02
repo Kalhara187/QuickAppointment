@@ -96,7 +96,7 @@ function ContactPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-100">QuickAppointment Support</p>
           <h1 className="mt-4 text-4xl font-bold leading-tight sm:text-5xl">Get In Touch With Us</h1>
           <p className="mt-6 max-w-2xl text-base text-cyan-50 sm:text-lg">
-            Have questions or feedback? We'd love to hear from you. Our support team is here to help.
+            Have questions or feedback? We&apos;d love to hear from you. Our support team is here to help.
           </p>
         </div>
       </section>
@@ -104,7 +104,7 @@ function ContactPage() {
       <div className="mt-12 grid gap-8 lg:grid-cols-5">
         <section className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md lg:col-span-3 sm:p-8">
           <h2 className="text-2xl font-bold text-slate-900">Send us a message</h2>
-          <p className="mt-2 text-slate-600">Fill out the form and we'll get back to you within 24 hours.</p>
+          <p className="mt-2 text-slate-600">Fill out the form and we&apos;ll get back to you within 24 hours.</p>
 
           {status.message && (
             <div

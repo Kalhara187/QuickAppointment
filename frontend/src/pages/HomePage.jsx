@@ -386,7 +386,7 @@ function HomePage() {
               </div>
             </div>
 
-            <p className="mt-4 text-cyan-50">"{testimonials[activeTestimonial].quote}"</p>
+            <p className="mt-4 text-cyan-50">&ldquo;{testimonials[activeTestimonial].quote}&rdquo;</p>
             <p className="mt-3 text-sm text-amber-200">{'*'.repeat(testimonials[activeTestimonial].rating)}</p>
           </div>
 
