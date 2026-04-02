@@ -86,7 +86,7 @@ function LoginPage() {
       window.dispatchEvent(new Event('qa-auth-changed'))
 
       setSuccessMessage('Login successful. Redirecting...')
-      navigate(user.role === 'admin' ? '/admin/dashboard' : '/')
+      navigate(user.role === 'admin' ? '/admin/dashboard' : user.role === 'provider' ? '/provider/dashboard' : '/')
     } catch (error) {
       setApiError(error?.response?.data?.message || 'Unable to login. Please try again.')
     } finally {

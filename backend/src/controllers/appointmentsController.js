@@ -76,6 +76,8 @@ function mapAppointment(row) {
     userName: row.userName,
     serviceId: row.serviceId,
     serviceName: row.serviceName,
+    providerId: row.providerId,
+    providerName: row.providerName,
     date: row.date,
     time: row.time,
     status: row.status,
@@ -91,8 +93,13 @@ async function ensureServiceExists(serviceId) {
 }
 
 async function ensureAppointmentExists(appointmentId) {
-  const [rows] = await pool.execute('SELECT id, user_id AS userId, status FROM appointments WHERE id = ? LIMIT 1', [appointmentId])
+  const [rows] = await pool.execute('SELECT id, user_id AS userId, provider_id AS providerId, status FROM appointments WHERE id = ? LIMIT 1', [appointmentId])
   return rows[0] || null
+}
+
+async function ensureProviderExists(providerId) {
+  const [rows] = await pool.execute('SELECT id FROM users WHERE id = ? AND role = ? LIMIT 1', [providerId, 'provider'])
+  return rows.length > 0
 }
 
 async function hasConflictingSlot({ date, time, excludeId = null }) {
@@ -185,6 +192,8 @@ const getAllAppointments = asyncHandler(async (req, res) => {
       u.name AS userName,
       a.service_id AS serviceId,
       s.name AS serviceName,
+      a.provider_id AS providerId,
+      pu.name AS providerName,
       DATE_FORMAT(a.appointment_date, '%Y-%m-%d') AS date,
       TIME_FORMAT(a.appointment_time, '%H:%i') AS time,
       a.status,
@@ -194,6 +203,7 @@ const getAllAppointments = asyncHandler(async (req, res) => {
     FROM appointments a
     INNER JOIN users u ON u.id = a.user_id
     INNER JOIN services s ON s.id = a.service_id
+    LEFT JOIN users pu ON pu.id = a.provider_id
     ORDER BY a.appointment_date DESC, a.appointment_time DESC
     LIMIT ?
   `
@@ -218,6 +228,8 @@ const getUserAppointments = asyncHandler(async (req, res) => {
       u.name AS userName,
       a.service_id AS serviceId,
       s.name AS serviceName,
+      a.provider_id AS providerId,
+      pu.name AS providerName,
       DATE_FORMAT(a.appointment_date, '%Y-%m-%d') AS date,
       TIME_FORMAT(a.appointment_time, '%H:%i') AS time,
       a.status,
@@ -227,11 +239,48 @@ const getUserAppointments = asyncHandler(async (req, res) => {
     FROM appointments a
     INNER JOIN users u ON u.id = a.user_id
     INNER JOIN services s ON s.id = a.service_id
+    LEFT JOIN users pu ON pu.id = a.provider_id
     WHERE a.user_id = ?
     ORDER BY a.appointment_date DESC, a.appointment_time DESC
   `
 
   const [rows] = await pool.execute(sql, [userId])
+
+  return res.status(200).json({
+    success: true,
+    data: {
+      appointments: rows.map(mapAppointment),
+    },
+  })
+})
+
+const getProviderAppointments = asyncHandler(async (req, res) => {
+  const providerId = req.user?.id
+
+  const sql = `
+    SELECT
+      a.id,
+      a.user_id AS userId,
+      u.name AS userName,
+      a.service_id AS serviceId,
+      s.name AS serviceName,
+      a.provider_id AS providerId,
+      pu.name AS providerName,
+      DATE_FORMAT(a.appointment_date, '%Y-%m-%d') AS date,
+      TIME_FORMAT(a.appointment_time, '%H:%i') AS time,
+      a.status,
+      a.notes,
+      a.created_at AS createdAt,
+      a.updated_at AS updatedAt
+    FROM appointments a
+    INNER JOIN users u ON u.id = a.user_id
+    INNER JOIN services s ON s.id = a.service_id
+    LEFT JOIN users pu ON pu.id = a.provider_id
+    WHERE a.provider_id = ?
+    ORDER BY a.appointment_date DESC, a.appointment_time DESC
+  `
+
+  const [rows] = await pool.execute(sql, [providerId])
 
   return res.status(200).json({
     success: true,
@@ -263,8 +312,9 @@ const updateAppointment = asyncHandler(async (req, res) => {
 
   const isOwner = Number(existing.userId) === Number(userId)
   const isAdmin = userRole === 'admin'
+  const isProvider = userRole === 'provider' && Number(existing.providerId) === Number(userId)
 
-  if (!isOwner && !isAdmin) {
+  if (!isOwner && !isAdmin && !isProvider) {
     return res.status(403).json({
       success: false,
       message: 'You are not allowed to update this appointment.',
@@ -322,6 +372,38 @@ const updateAppointment = asyncHandler(async (req, res) => {
     updates.service_id = serviceId
   }
 
+  if (req.body.providerId !== undefined) {
+    if (!isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only admin can assign a provider.',
+      })
+    }
+
+    const rawProviderId = req.body.providerId
+    if (rawProviderId === null || rawProviderId === '') {
+      updates.provider_id = null
+    } else {
+      const providerId = Number.parseInt(rawProviderId, 10)
+      if (Number.isNaN(providerId) || providerId <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid provider ID.',
+        })
+      }
+
+      const providerExists = await ensureProviderExists(providerId)
+      if (!providerExists) {
+        return res.status(404).json({
+          success: false,
+          message: 'Selected provider does not exist.',
+        })
+      }
+
+      updates.provider_id = providerId
+    }
+  }
+
   if (req.body.notes !== undefined) {
     const notes = normalizeNotes(req.body.notes)
     if (notes.length < MIN_NOTES_LENGTH || notes.length > MAX_NOTES_LENGTH) {
@@ -343,10 +425,10 @@ const updateAppointment = asyncHandler(async (req, res) => {
       })
     }
 
-    if (!isAdmin) {
+    if (!isAdmin && !isProvider) {
       return res.status(403).json({
         success: false,
-        message: 'Only admin can update appointment status directly.',
+        message: 'Only admin or assigned provider can update appointment status directly.',
       })
     }
 
@@ -424,8 +506,9 @@ const cancelAppointment = asyncHandler(async (req, res) => {
 
   const isOwner = Number(existing.userId) === Number(userId)
   const isAdmin = userRole === 'admin'
+  const isProvider = userRole === 'provider' && Number(existing.providerId) === Number(userId)
 
-  if (!isOwner && !isAdmin) {
+  if (!isOwner && !isAdmin && !isProvider) {
     return res.status(403).json({
       success: false,
       message: 'You are not allowed to cancel this appointment.',
@@ -454,6 +537,7 @@ module.exports = {
   createAppointment,
   getAllAppointments,
   getUserAppointments,
+  getProviderAppointments,
   updateAppointment,
   cancelAppointment,
 }

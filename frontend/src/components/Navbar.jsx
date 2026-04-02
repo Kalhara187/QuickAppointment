@@ -98,6 +98,9 @@ export function Navbar() {
     ? 'bg-slate-800 text-slate-100 hover:bg-slate-700 border-slate-700'
     : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300'
 
+  const dashboardLink = userRole === 'admin' ? '/admin/dashboard' : userRole === 'provider' ? '/provider/dashboard' : null
+  const dashboardLabel = userRole === 'provider' ? 'Provider Dashboard' : 'Dashboard'
+
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-xl shadow-sm ${navSurfaceClass}`}>
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -164,12 +167,12 @@ export function Navbar() {
               >
                 Contact
               </NavLink>
-              {isAuthenticated && userRole === 'admin' && (
+              {isAuthenticated && dashboardLink && (
                 <Link
-                  to="/admin/dashboard"
+                  to={dashboardLink}
                   className={`border-b-2 border-transparent pb-1 transition-all duration-300 ${isDarkMode ? 'text-amber-300 hover:text-amber-200 hover:border-amber-300' : 'text-amber-700 hover:text-amber-800 hover:border-amber-700'}`}
                 >
-                  Dashboard
+                  {dashboardLabel}
                 </Link>
               )}
             </div>
@@ -336,13 +339,13 @@ export function Navbar() {
               Contact
             </NavLink>
 
-            {isAuthenticated && userRole === 'admin' && (
+            {isAuthenticated && dashboardLink && (
               <Link
-                to="/admin/dashboard"
+                to={dashboardLink}
                 className={`block rounded-md px-3 py-2 text-sm transition-colors duration-300 ${isDarkMode ? 'text-amber-300 hover:text-amber-200' : 'text-amber-700 hover:text-amber-800'}`}
                 onClick={closeMenu}
               >
-                Dashboard
+                {dashboardLabel}
               </Link>
             )}
 

@@ -168,10 +168,10 @@ const updateUserRole = asyncHandler(async (req, res) => {
     })
   }
 
-  if (!['user', 'admin'].includes(role)) {
+  if (!['user', 'admin', 'provider'].includes(role)) {
     return res.status(400).json({
       success: false,
-      message: 'Role must be either user or admin.',
+      message: 'Role must be user, admin, or provider.',
     })
   }
 

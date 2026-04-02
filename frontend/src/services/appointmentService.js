@@ -6,6 +6,11 @@ export const appointmentService = {
     return response.data
   },
 
+  async getProviderAppointments() {
+    const response = await apiClient.get('/appointments/provider')
+    return response.data
+  },
+
   async getMyAppointments() {
     const response = await apiClient.get('/appointments/user')
     return response.data

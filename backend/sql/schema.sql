@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
   name VARCHAR(100) NOT NULL,
   email VARCHAR(120) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,
-  role ENUM('user', 'admin') NOT NULL DEFAULT 'user',
+  role ENUM('user', 'admin', 'provider') NOT NULL DEFAULT 'user',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS appointments (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNSIGNED NOT NULL,
   service_id INT UNSIGNED NOT NULL,
+  provider_id INT UNSIGNED NULL,
   appointment_date DATE NOT NULL,
   appointment_time TIME NOT NULL,
   status ENUM('pending', 'confirmed', 'cancelled') NOT NULL DEFAULT 'pending',
@@ -63,8 +64,10 @@ CREATE TABLE IF NOT EXISTS appointments (
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_appointments_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   CONSTRAINT fk_appointments_service FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_appointments_provider FOREIGN KEY (provider_id) REFERENCES users(id) ON DELETE SET NULL,
   INDEX idx_appointments_user (user_id),
   INDEX idx_appointments_service (service_id),
+  INDEX idx_appointments_provider (provider_id),
   INDEX idx_appointments_datetime (appointment_date, appointment_time),
   INDEX idx_appointments_status (status)
 );

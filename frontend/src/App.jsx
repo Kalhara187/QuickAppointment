@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Footer, Navbar } from './components'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
 
 const HomePage = lazy(() => import('./pages/HomePage.jsx'))
 const ContactPage = lazy(() => import('./pages/ContactPage.jsx'))
@@ -15,6 +16,8 @@ const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage.jsx'))
 const ManageAppointmentsPage = lazy(() => import('./pages/ManageAppointmentsPage.jsx'))
 const ManageServicesPage = lazy(() => import('./pages/ManageServicesPage.jsx'))
 const ManageUsersPage = lazy(() => import('./pages/ManageUsersPage.jsx'))
+const ProviderDashboardPage = lazy(() => import('./pages/ProviderDashboardPage.jsx'))
+const AccessDeniedPage = lazy(() => import('./pages/AccessDeniedPage.jsx'))
 
 function App() {
   return (
@@ -37,14 +40,26 @@ function App() {
               <Route path="/book-appointment" element={<BookAppointmentPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/my-appointments" element={<MyAppointmentsPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
-              <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-              <Route path="/admin/appointments" element={<ManageAppointmentsPage />} />
-              <Route path="/admin/services" element={<ManageServicesPage />} />
-              <Route path="/admin/users" element={<ManageUsersPage />} />
+
+              <Route path="/access-denied" element={<AccessDeniedPage />} />
+
+              <Route element={<ProtectedRoute />}>
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/my-appointments" element={<MyAppointmentsPage />} />
+              </Route>
+
+              <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+                <Route path="/admin/appointments" element={<ManageAppointmentsPage />} />
+                <Route path="/admin/services" element={<ManageServicesPage />} />
+                <Route path="/admin/users" element={<ManageUsersPage />} />
+              </Route>
+
+              <Route element={<ProtectedRoute allowedRoles={['provider']} />}>
+                <Route path="/provider/dashboard" element={<ProviderDashboardPage />} />
+              </Route>
             </Routes>
           </Suspense>
         </main>

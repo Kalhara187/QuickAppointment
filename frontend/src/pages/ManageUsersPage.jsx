@@ -5,6 +5,7 @@ function ManageUsersPage() {
   const [users, setUsers] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
+  const roleOptions = ['user', 'provider', 'admin']
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -23,11 +24,8 @@ function ManageUsersPage() {
     loadUsers()
   }, [])
 
-  const toggleRole = async (id) => {
-    const target = users.find((item) => item.id === id)
-    if (!target) return
-
-    const nextRole = target.role === 'admin' ? 'user' : 'admin'
+  const updateRole = async (id, nextRole) => {
+    if (!nextRole) return
 
     try {
       setErrorMessage('')
@@ -64,13 +62,17 @@ function ManageUsersPage() {
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => toggleRole(user.id)}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-sky-600 hover:text-sky-700"
+                <select
+                  value={user.role}
+                  onChange={(event) => updateRole(user.id, event.target.value)}
+                  className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700"
                 >
-                  Toggle Role
-                </button>
+                  {roleOptions.map((role) => (
+                    <option key={role} value={role}>
+                      {role}
+                    </option>
+                  ))}
+                </select>
               </div>
             </article>
           ))}
