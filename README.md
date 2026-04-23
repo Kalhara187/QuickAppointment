@@ -163,5 +163,38 @@ QuickAppointment/
 |  |- src/
 |  |- public/
 |  |- package.json
+|- package.json
 |- README.md
 ```
+
+## Getting Started
+
+From the repository root:
+
+1. Install all dependencies:
+
+```bash
+npm install
+npm run install:all
+```
+
+2. Configure backend environment values in `backend/.env`.
+
+3. Start frontend and backend together:
+
+```bash
+npm run dev
+```
+
+4. Open the app:
+
+```text
+http://localhost:3000
+```
+
+Useful root scripts:
+
+- `npm run dev` -> starts backend + frontend together
+- `npm run lint` -> backend syntax checks + frontend ESLint
+- `npm run build` -> frontend production build
+- `npm start` -> backend production start
